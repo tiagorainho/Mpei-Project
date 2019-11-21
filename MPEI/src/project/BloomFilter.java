@@ -6,7 +6,7 @@ public class BloomFilter {
 	private static final int maxValue = 8;
 	
 	public BloomFilter(int size, int numHashFunctions) {
-		this.array = new byte[calculateArraySize(size, numHashFunctions)];
+		this.array = new byte[calculateOptimalArraySize(size, numHashFunctions)];
 		this.numHashFunctions = numHashFunctions;
 	}
 	
@@ -35,7 +35,7 @@ public class BloomFilter {
 		return value % this.array.length;
 	}
 	
-	private int calculateArraySize(int size, int numHashFunctions) {
+	private int calculateOptimalArraySize(int size, int numHashFunctions) {
 		return (int) ((size*numHashFunctions)/Math.log(2));		// k = (n*ln(2))/m   <=>   n = (k*m)/ln(2)
 	}
 	

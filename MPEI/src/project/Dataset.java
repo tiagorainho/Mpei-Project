@@ -13,7 +13,7 @@ public class Dataset {
 	private int excluded;
 	private BloomFilter titlesBloomFilter;
 	private boolean onlyTrustTrustedEntities;
-	private static final String[] trustedEntities = {"New York Times"};
+	private static final String[] trustedEntities = {"New York Times", "Atlantic", "Guardian"};
 	
 	public Dataset(int numValuesAprox, boolean onlyTrustTrustedEntities) {
 		this.onlyTrustTrustedEntities = onlyTrustTrustedEntities;
@@ -28,7 +28,7 @@ public class Dataset {
 		this(numValuesAprox, false);
 	}
 	
-	public void getValuesCSV(File fileName, String sep) {
+	public void addValuesCSV(File fileName, String sep) {
 		System.out.println("Reading file...");
 		List<String> news = getLines(fileName);
 		System.out.println("File has been successfully read\nParsing data...");
@@ -61,7 +61,7 @@ public class Dataset {
 	private void addToDataset(String[] parts, String sep) {
 		int id = Integer.parseInt(parts[0].trim());
 		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), getContent(parts,9, sep), id));
-		titlesBloomFilter.add(parts[2]);
+		titlesBloomFilter.add(parts[2].trim());
 	}
 	
 	public String[] getPublicators() {
@@ -89,7 +89,7 @@ public class Dataset {
 	}
 	
 	public boolean containsTitle(String title) {
-		return this.titlesBloomFilter.contains(title);
+		return this.titlesBloomFilter.contains(title.trim());
 	}
 	
 	public void setMaxValues(int value) {
@@ -144,10 +144,14 @@ public class Dataset {
 		return content;
 	}
 	
+	public ArrayList<Publication> getDataset() {
+		return this.dataset;
+	}
+	
 	public String toString() {
 		String maxvalues = String.valueOf(this.maxValues);
 		if(this.maxValues == 0) {
-			maxvalues = "∞";
+			maxvalues = "no limit"; //"∞";
 		}
 		return "This dataset has " + this.dataset.size() + " values. Errors occurred: " + this.errors + ". Excluded by lack of trust: " + this.excluded + ". Max values: " + maxvalues;
 	}
