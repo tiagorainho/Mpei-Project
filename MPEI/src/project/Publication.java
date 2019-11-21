@@ -3,23 +3,32 @@ import java.util.Date;
 
 public class Publication {
 	private int id;
+	private int externalID;
 	private String author;
 	private String title;
-	private String publication;
+	private String publicator;
 	private String content;
-	private Date date;
+	//private Date date;
 	
-	public Publication(int id, String author, String title, String publication, String content) {	// Date date
-		this.id = id;
+	public Publication(int id, String author, String title, String publicator, String content, int idExt) {	// Date date
+		this.externalID = idExt;
 		this.author = author;
 		this.title = title;
-		this.publication = publication;
+		this.publicator = publicator;
 		this.content = content;
 		//this.date = date;
 	}
 	
+	public String getPublicator() {
+		return this.publicator;
+	}
+	
+	public String getTitle() {
+		return this.title;
+	}
+	
 	public String toString() {
-		return "Id: " + this.id + "\tAuthor: " + this.author + "\nTitle: " + this.title + "\nPublication: " + this.publication + "\nContent: " +this.content;
+		return "Id: " + this.id + "\tAuthor: " + this.author + "\nTitle: " + this.title + "\nPublication: " + this.publicator + "\nContent: " +this.content;
 	}
 	
 	
