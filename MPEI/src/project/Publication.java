@@ -3,7 +3,7 @@ import java.util.Date;
 
 public class Publication {
 	private int id;
-	private int externalID;
+	//private int externalID;
 	private String author;
 	private String title;
 	private String publicator;
@@ -11,12 +11,14 @@ public class Publication {
 	//private Date date;
 	
 	public Publication(int id, String author, String title, String publicator, String content, int idExt) {	// Date date
-		this.externalID = idExt;
+		//this.externalID = idExt;
 		this.author = author;
 		this.title = title;
 		this.publicator = publicator;
 		this.content = content;
+		this.id = id;
 		//this.date = date;
+		
 	}
 	
 	public String getPublicator() {
