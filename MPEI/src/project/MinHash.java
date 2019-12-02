@@ -26,7 +26,7 @@ public class MinHash {
 	
 	public MinHash(int numPermutacoes, int letraLen, double threshHold, int randomValues) {
 		this.numPermutacoes = numPermutacoes;
-		this.A = getRandomValues(randomValues);
+		this.A = getRandomValues(numPermutacoes);
 		this.B = getRandomValues(this.A);
 		this.shinglesLength = letraLen;
 		this.signatures = new int[1][numPermutacoes];
@@ -37,11 +37,17 @@ public class MinHash {
 		this(numPermutacoes, 3, 0.6, 10);
 	}
 	
+	public MinHash(int numPermutacoes, int letraLen) {
+		this(numPermutacoes, letraLen, 0.6, 10);
+	}
+	
 	public List<LinkedList<Integer>> getSimilars(){
 		boolean found;
 		LinkedList<Integer> llAux;
 		List<LinkedList<Integer>> list = new LinkedList<LinkedList<Integer>>();
 		LinkedList<Integer> used = new LinkedList<Integer>();
+		int count = 0;
+		int part = this.signatures.length/10;
 		for(int i=0;i<this.signatures.length-1;i++) {
 			llAux = new LinkedList<Integer>();
 			found = false;
@@ -58,7 +64,14 @@ public class MinHash {
 				llAux.addFirst(i);
 				list.add(llAux);
 			}
+			if(i == part*count) {
+				if(count != 10) {
+					System.out.printf("%d.. ", count*10);
+					count++;
+				}
+			}
 		}
+		System.out.println("Done!");
 		return list;
 	}
 	
@@ -151,19 +164,19 @@ public class MinHash {
 	
 	private int[] getSignature(String[] shingles) {
 		int[] signature = new int[this.numPermutacoes];
-		signature = setArrayToValue(signature, this.maxRandomValue);
+		signature = setArrayToValue(signature, this.largePrimeNumber);
 		int auxSig, auxHash;
-		for(int i=0;i<this.numPermutacoes;i++) {
+		//for(int i=0;i<this.numPermutacoes;i++) {
 			for(int k=0;k<shingles.length;k++) {
-				auxHash = Hash.hash(shingles[k] + i);
+				auxHash = Hash.hash(shingles[k]);
 				for(int j=0;j<this.A.length;j++) {
 					auxSig = (Math.abs(this.A[j] * auxHash) + this.B[j]) % this.largePrimeNumber;
-					if(auxSig < signature[i]) {
-						signature[i] = auxSig;
+					if(auxSig < signature[j]) {
+						signature[j] = auxSig;
 					}
 				}
 			}
-		}
+		//}
 		return signature;
 	}
 	
@@ -189,11 +202,14 @@ public class MinHash {
 	
 	private String[] getShingles(String str) {
 		str = str.replace(" ", "");
-		String[] list = new String[str.length() - this.shinglesLength + 1];
-		for(int i=0;i<str.length() - this.shinglesLength + 1;i++) {
-			list[i] = str.substring(i, i + this.shinglesLength);
+		if(str.length() - this.shinglesLength + 1 > 0) {
+			String[] list = new String[str.length() - this.shinglesLength + 1];
+			for(int i=0;i<str.length() - this.shinglesLength + 1;i++) {
+				list[i] = str.substring(i, i + this.shinglesLength);
+			}
+			return list;
 		}
-		return list;
+		return new String[0];
 	}
 	
 	private String[] convertListToStrings(List<String> l) {
@@ -213,7 +229,10 @@ public class MinHash {
 	private int[] getRandomValues(int len) {
 		int[] a = new int[len];
 		for(int i=0;i<len; i++) {
-			a[i] = (int) (Math.random() * this.maxRandomValue + 1);
+			a[i] = (int) (Math.random() * this.largePrimeNumber + 1);
+			if(a[i] == this.largePrimeNumber) {
+				a[i]--;
+			}
 		}
 		return a;
 	}
@@ -223,7 +242,10 @@ public class MinHash {
 		int aux;
 		for(int i=0;i < array.length; i++) {
 			do {
-				aux = (int) (Math.random() * this.maxRandomValue + 1);
+				aux = (int) (Math.random() * this.largePrimeNumber + 1);
+				if(aux == this.largePrimeNumber) {
+					aux--;
+				}
 			}
 			while(aux == array[i]);
 			b[i] = aux;			

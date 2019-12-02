@@ -21,6 +21,10 @@ public class Publication {
 		
 	}
 	
+	public String getContent() {
+		return this.content;
+	}
+	
 	public String getPublicator() {
 		return this.publicator;
 	}

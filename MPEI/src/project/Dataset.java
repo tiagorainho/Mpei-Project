@@ -1,6 +1,13 @@
 package project;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.RandomAccessFile;
+import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -9,6 +16,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
+
 public class Dataset {
 	private ArrayList<Publication> dataset;
 	private int maxValues;
@@ -16,10 +26,10 @@ public class Dataset {
 	private int excluded;
 	private BloomFilter titlesBloomFilter;
 	private boolean onlyTrustTrustedEntities;
-	private static final String[] trustedEntities = {"New York Times", "Atlantic", "Guardian"};
-	private static final String[] trustedEntitiesMark = {" - The New York Times", ",Atlantic", ",Guardian"};
-		
-	public Dataset(int numValuesAprox, boolean onlyTrustTrustedEntities, boolean StorageOptimization) {
+	private static final String[] trustedEntities = {"New York Times", "Breitbart", "CNN", "Business Insider", "Atlantic", "Fox News", "Talking Points Memo", "Buzzfeed News", "National Review", "Guardian", "New York Post", "NPR", "Reuters", "Vox", "Washington Post"};   
+	private static final String[] trustedEntitiesMark = {" - The New York Times", ",Atlantic", ",Guardian", " - Breitbart"};
+	
+	public Dataset(int numValuesAprox, boolean StorageOptimization, boolean onlyTrustTrustedEntities) {
 		this.onlyTrustTrustedEntities = onlyTrustTrustedEntities;
 		dataset = new ArrayList<Publication>();
 		this.maxValues = 0;
@@ -34,12 +44,48 @@ public class Dataset {
 		}	
 	}
 	
-	public Dataset(int numValuesAprox, boolean optimization) {
-		this(numValuesAprox, optimization, optimization);
+	public Dataset(int numValuesAprox, boolean StorageOptimization) {
+		this(numValuesAprox, StorageOptimization, false);
 	}
 	
 	public Dataset(int numValuesAprox) {
 		this(numValuesAprox, false, false);
+	}
+	
+	public void showSimilarNews(double threshHold, int permutations) {
+		showSimilarNews(threshHold, permutations, 10);
+	}
+	
+	public void showSimilarNews(double threshHold, int permutations, int shingleLen) {
+		System.out.println("Preparing shingles for Min Hashing...");
+		MinHash minHash = new MinHash(permutations, shingleLen);
+		minHash.setThreshHold(threshHold);
+		long start = System.currentTimeMillis();
+		List<String> news = getPublicationsContent();
+		minHash.add(news);
+		long durationMiliseconds = System.currentTimeMillis() - start;
+		float durationSeconds = durationMiliseconds/ (float) 1000;
+		System.out.printf("Min Hash preparation finished in %.3f seconds\n",durationSeconds);
+		System.out.println("Calculating Min Hash...");
+		start = System.currentTimeMillis();
+		List<LinkedList<Integer>> list = minHash.getSimilars();
+		int count = 0;
+		for(int i=0;i<list.size();i++) {
+			LinkedList<Integer> llAux = list.get(i);
+			for(int j=0;j<llAux.size();j++) {
+				System.out.printf("%d - %s\n",i, news.get(llAux.get(j)));
+				count++;
+			}
+		}
+		durationMiliseconds = System.currentTimeMillis() - start;
+		durationSeconds = durationMiliseconds/ (float) 1000;
+		try {
+			registLog(list, news , "src/logs/news.txt");
+		} catch (IOException e) {
+			System.out.println("Error writing to log file");
+			e.printStackTrace();
+		}
+		System.out.printf("Min Hash finished in %.3f seconds, %d combinations found and %d news are at least %.2f similar\n",durationSeconds, list.size(), count, threshHold);
 	}
 	
 	public void showSimilarTitles(double threshHold, int permutations) {
@@ -62,6 +108,12 @@ public class Dataset {
 		}
 		long durationMiliseconds = System.currentTimeMillis() - start;
 		float durationSeconds = durationMiliseconds/ (float) 1000;
+		try {
+			registLog(list, titles , "src/logs/titles.txt");
+		} catch (IOException e) {
+			System.out.println("Error writing to log file");
+			e.printStackTrace();
+		}
 		System.out.printf("Min Hash finished in %.3f seconds, %d combinations found and %d titles are at least %.2f similar\n",durationSeconds, list.size(), count, threshHold);
 	}
 	
@@ -77,13 +129,83 @@ public class Dataset {
 		List<String> newList = new LinkedList<String>();
 		for(String str: list) {
 			for(String entity: this.trustedEntitiesMark) {
-				if(str.contains(entity)) {
-					str = str.replace(entity, "");
-				}
+				str = str.replace(entity, "");
 			}
 			newList.add(str);
 		}
 		return newList;
+	}
+	
+	public void registLog(List<LinkedList<Integer>> links, List<String> list, String fileName) throws IOException {
+		if(links.size() == 0) {
+			System.out.println("No information to save on log file");
+			return;
+		}
+		File f = new File(fileName);
+		if(!f.exists()) {
+			String dir = f.getAbsolutePath().substring(0,f.getAbsolutePath().lastIndexOf("/"));
+			File dirs = new File(dir);
+			if(dirs.mkdirs()) {
+				System.out.println("Error creating log file");
+				return;
+			}
+			f = new File(fileName);
+		}
+		PrintWriter pw = new PrintWriter(new FileWriter(f), false);
+		for(int i=0;i<links.size();i++) {
+			LinkedList<Integer> llAux = links.get(i);
+			for(int j=0;j<llAux.size();j++) {
+				pw.write(i + " - " + list.get(llAux.get(j)) + "\n\n");
+			}
+			pw.write("\n\n");
+			pw.write("########################################################################################################################\n\n");
+		}
+		System.out.println("Log file: " + f.getAbsolutePath());
+		pw.close();
+		/*
+		RandomAccessFile raf = new RandomAccessFile(f, "rw");
+		raf.seek(0);
+		String aux;
+		for(int i=0;i<links.size();i++) {
+			LinkedList<Integer> llAux = links.get(i);
+			for(int j=0;j<llAux.size();j++) {
+				raf.writeChars(i + " - " + list.get(llAux.get(j)) + "\n");
+			}
+		}
+		raf.close();
+		*/
+	}
+	
+	public void addValuesCSV(String fileName) throws FileNotFoundException {
+		System.out.println("Reading file...");
+		Reader in = new FileReader(fileName);
+		System.out.println("File has been successfully read\nParsing data...");
+		Iterable<CSVRecord> records = null;
+		try {
+			records = CSVFormat.RFC4180.withFirstRecordAsHeader().parse(in);
+		} catch (IOException e) {
+			System.out.println("Excell not working");
+			e.printStackTrace();
+			System.exit(0);
+		}
+		for (CSVRecord record : records) {
+			if(this.maxValues != 0 && this.maxValues <= dataset.size()) {
+				break;
+			}
+			String parts[] = new String[10];
+		    parts[0] = record.get("id").trim();
+		    parts[2] = record.get("title").trim();
+		    parts[3] = record.get("publication").trim();
+		    parts[4] = record.get("author").trim();
+		    parts[9] = record.get("content").trim();
+		    addToDataset(parts);
+		}
+		System.out.println(getParseInfo());
+	}
+			// int id, String author, String title, String publicator, String content, int idExt
+	public void addToDataset(String[] parts) {
+		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), parts[9], Integer.parseInt(parts[0])));
+		titlesBloomFilter.add(parts[2].trim());
 	}
 	
 	public void addValuesCSV(File fileName, String sep) {
@@ -180,14 +302,35 @@ public class Dataset {
 		}		
 	}
 	
+	public List<String> getPublicationsContent(int value) {
+		Set<String> list = new HashSet<String>();
+		String content;
+		for(int i=0;i<value;i++) {
+			content = this.dataset.get(i).getContent();
+			//if(content.length() != 0) {
+				list.add(content);
+			//}
+		}
+		List<String> newlist = new LinkedList<String>();
+		for(String str: list) {
+			newlist.add(str);
+		}
+		return newlist;
+	}
+	
+	
+	public List<String> getPublicationsContent() {
+		return getPublicationsContent(this.dataset.size());
+	}
+ 	
 	public List<String> getTitles(int value) {
 		Set<String> list = new HashSet<String>();
 		String title;
 		for(int i=0;i<value;i++) {
 			title = this.dataset.get(i).getTitle();
-			if(title.length() != 0) {
+			//if(title.length() != 0) {
 				list.add(title);
-			}
+			//}
 		}
 		List<String> newlist = new LinkedList<String>();
 		for(String str: list) {
