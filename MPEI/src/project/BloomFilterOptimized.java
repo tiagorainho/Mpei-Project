@@ -5,12 +5,12 @@ public class BloomFilterOptimized implements BloomFilter {
 	private int numHashFunctions;
 	private int arrayVirtualLength;
 	private static final int[] steps = {1, 2, 4, 8, 16, 32, 64, 128};
+	private final static double prob = 0.001;
 	
 	public BloomFilterOptimized(int size, int numHashFunctions) {
 		this.arrayVirtualLength = calculateOptimalArraySize(size, numHashFunctions);
 		this.array = new byte[(int) Math.ceil(arrayVirtualLength/8)+1];
 		this.numHashFunctions = numHashFunctions;
-		
 	}
 	
 	public void add(String content) {
@@ -54,7 +54,9 @@ public class BloomFilterOptimized implements BloomFilter {
 	}
 	
 	private int calculateOptimalArraySize(int size, int numHashFunctions) {
-		return (int) Math.ceil(((size*numHashFunctions)/Math.log(2)));		// k = (n*ln(2))/m   <=>   n = (k*m)/ln(2)
+		
+		//return (int) Math.ceil((size * Math.log(this.prob)) / Math.log(1 / Math.pow(2, Math.log(2))));
+		return (int) Math.ceil(((size*numHashFunctions)/Math.log(2))) * 8;		// k = (n*ln(2))/m   <=>   n = (k*m)/ln(2)
 	}
 }
 

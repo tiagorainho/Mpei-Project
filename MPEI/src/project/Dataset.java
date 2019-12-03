@@ -24,36 +24,55 @@ public class Dataset {
 	private int maxValues;
 	private int errors;
 	private int excluded;
-	private BloomFilter titlesBloomFilter;
+	private BloomFilterOptimized titlesBloomFilter;
+	private BloomFilterIncremental titlesBloomFilterIncremental;
 	private boolean onlyTrustTrustedEntities;
 	private static final String[] trustedEntities = {"New York Times", "Breitbart", "CNN", "Business Insider", "Atlantic", "Fox News", "Talking Points Memo", "Buzzfeed News", "National Review", "Guardian", "New York Post", "NPR", "Reuters", "Vox", "Washington Post"};   
 	private static final String[] trustedEntitiesMark = {" - The New York Times", ",Atlantic", ",Guardian", " - Breitbart"};
 	
-	public Dataset(int numValuesAprox, boolean StorageOptimization, boolean onlyTrustTrustedEntities) {
+	public Dataset(int numValuesAprox, boolean onlyTrustTrustedEntities) {
 		this.onlyTrustTrustedEntities = onlyTrustTrustedEntities;
 		dataset = new ArrayList<Publication>();
 		this.maxValues = 0;
 		this.excluded = 0;
 		this.errors = 0;
-		
-		if(StorageOptimization) {
-			titlesBloomFilter = new BloomFilterOptimized(numValuesAprox, 4);	// aproximated value of objects, number of hash functions
-		}
-		else {
-			titlesBloomFilter = new BloomFilterIncremental(numValuesAprox, 4);
-		}	
-	}
-	
-	public Dataset(int numValuesAprox, boolean StorageOptimization) {
-		this(numValuesAprox, StorageOptimization, false);
+		this.titlesBloomFilter = new BloomFilterOptimized(numValuesAprox, 4);
+		this.titlesBloomFilterIncremental = new BloomFilterIncremental(numValuesAprox, 4);
 	}
 	
 	public Dataset(int numValuesAprox) {
-		this(numValuesAprox, false, false);
+		this(numValuesAprox, false);
 	}
 	
 	public void showSimilarNews(double threshHold, int permutations) {
 		showSimilarNews(threshHold, permutations, 10);
+	}
+	
+	public void showSameNews(double threshHold, int permutations) {
+		showSameNews(threshHold, permutations, 10);
+	}
+	
+	public void showSameNews(double threshHold, int permutations, int shingleLen) {
+		
+	}
+	
+	public void getSameNews(double threshHold, int permutations) {
+		getSameNews(threshHold, permutations, 10);
+	}
+	
+	// devolver uma lista de noticias repetidas com titulos iguais (conteudo similar e titulo repetido)
+	public void getSameNews(double threshHold, int permutations, int shingleLen) {
+		List<String> list = new LinkedList<String>();
+		for(int i=0;i<this.dataset.size();i++) {
+			if(this.titlesBloomFilterIncremental.contains(this.dataset.get(i).getTitle())) {
+				list.add(this.dataset.get(i).getContent());
+			}
+		}
+		System.out.println("Same title news count: " + list.size());
+		MinHash minHash = new MinHash(permutations);
+		minHash.setThreshHold(threshHold);
+		minHash.showSimilars();
+		
 	}
 	
 	public void showSimilarNews(double threshHold, int permutations, int shingleLen) {
@@ -162,18 +181,6 @@ public class Dataset {
 		}
 		System.out.println("Log file: " + f.getAbsolutePath());
 		pw.close();
-		/*
-		RandomAccessFile raf = new RandomAccessFile(f, "rw");
-		raf.seek(0);
-		String aux;
-		for(int i=0;i<links.size();i++) {
-			LinkedList<Integer> llAux = links.get(i);
-			for(int j=0;j<llAux.size();j++) {
-				raf.writeChars(i + " - " + list.get(llAux.get(j)) + "\n");
-			}
-		}
-		raf.close();
-		*/
 	}
 	
 	public void addValuesCSV(String fileName) throws FileNotFoundException {
@@ -202,7 +209,7 @@ public class Dataset {
 		}
 		System.out.println(getParseInfo());
 	}
-			// int id, String author, String title, String publicator, String content, int idExt
+	
 	public void addToDataset(String[] parts) {
 		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), parts[9], Integer.parseInt(parts[0])));
 		titlesBloomFilter.add(parts[2].trim());
@@ -270,6 +277,14 @@ public class Dataset {
 	
 	public boolean containsTitle(String title) {
 		return this.titlesBloomFilter.contains(title.trim());
+	}
+	
+	public boolean containsTitleIncremental(String title) {
+		return this.titlesBloomFilterIncremental.contains(title.trim());
+	}
+	
+	public boolean containsMoreThanOneTitle(String title) {
+		return this.titlesBloomFilterIncremental.containsMoreThanOne(title.trim());
 	}
 	
 	public void setMaxValues(int value) {

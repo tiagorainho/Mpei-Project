@@ -41,14 +41,32 @@ public class MinHash {
 		this(numPermutacoes, letraLen, 0.6, 10);
 	}
 	
+	public List<Integer> getSimilars(int v1) {
+		List<Integer> list = new LinkedList<Integer>();
+		for(int i=0;i<v1;i++) {
+			if(areSimilar(v1, i)) {
+				list.add(i);
+			}
+		}
+		return list;
+	}
+	
 	public List<LinkedList<Integer>> getSimilars(){
 		boolean found;
 		LinkedList<Integer> llAux;
 		List<LinkedList<Integer>> list = new LinkedList<LinkedList<Integer>>();
 		LinkedList<Integer> used = new LinkedList<Integer>();
 		int count = 0;
-		int part = this.signatures.length/10;
+		int part = this.signatures.length/10; // 	((this.signatures.length*numPermutacoes)/2)/10
 		for(int i=0;i<this.signatures.length-1;i++) {
+			// ############ show progress ##################
+			if(i == part*count) {
+				if(count != 10) {
+					System.out.printf("%d.. ", count*10);
+					count++;
+				}
+			}
+			// #############################################
 			llAux = new LinkedList<Integer>();
 			found = false;
 			for(int j=i+1;j<this.signatures.length;j++) {
@@ -63,12 +81,6 @@ public class MinHash {
 			if(found) {
 				llAux.addFirst(i);
 				list.add(llAux);
-			}
-			if(i == part*count) {
-				if(count != 10) {
-					System.out.printf("%d.. ", count*10);
-					count++;
-				}
 			}
 		}
 		System.out.println("Done!");

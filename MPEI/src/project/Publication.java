@@ -10,7 +10,7 @@ public class Publication {
 	private String content;
 	//private Date date;
 	
-	public Publication(int id, String author, String title, String publicator, String content, int idExt) {	// Date date
+	public Publication(int id, String author, String title, String publicator, String content, int idExt) {
 		//this.externalID = idExt;
 		this.author = author;
 		this.title = title;

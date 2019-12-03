@@ -15,21 +15,18 @@ public class Test {
 	
 	public static void doTest(String fileName, String sep) throws FileNotFoundException {
 		
-		Dataset dataset = new Dataset(200000, true);
-		dataset.setMaxValues(2000);
+		Dataset dataset = new Dataset(50000);
+		//dataset.setMaxValues(50000);
 		
 		dataset.addValuesCSV(fileName);
-		//dataset.addValuesCSV(new File(fileName), sep);
 		
 		//dataset.addValuesCSV(fileName2);
 		//dataset.addValuesCSV(fileName3);
 		
-		//dataset.addValuesCSV(new File(fileName2), sep);
-		//dataset.addValuesCSV(new File(fileName3), sep);	
 		System.out.println(dataset.toString());
 		
-		dataset.showSimilarTitles(0.6, 100);
-		
+		//dataset.showSimilarTitles(0.8, 100);
+		//dataset.getSameNews(0.8, 100);
 		
 		//dataset.showSimilarNews(0.8, 100);
 		
@@ -47,9 +44,11 @@ public class Test {
 		System.out.println(b.getSimilarity(0, 1));
 		*/
 		
-		//testBloomFilter(dataset, 100000);
 		
 		
+		
+		
+		testBloomFilter(dataset, 100000);
 	}
 	
 	private static Menu getMenu() {
@@ -84,12 +83,55 @@ public class Test {
 		return true;
 	}
 	
-	private static void testBloomFilter(Dataset dataset) {
-		testBloomFilter(dataset, 10000000);
+	private static void testBloomFilter(Dataset dataset, int value) {
+		String[] randomStrings = getRandomStrings(value);
+		testBloomFilterOptimized(dataset, randomStrings);
+		//System.exit(0);
+		testBloomFilterIncremental(dataset, randomStrings);
+		testBloomFilterIncrementalMoreThanOne(dataset, randomStrings);
 	}
 	
-	private static void testBloomFilter(Dataset dataset, int value) {
-		System.out.println("BLOOM FILTER TEST...");
+	private static void testBloomFilterIncrementalMoreThanOne(Dataset dataset, String[] randomValues) {
+		System.out.println("BLOOM FILTER INCREMENTAL \"More than one\" TEST...");
+		ArrayList<Publication> d = dataset.getDataset();
+		int errors = 0;
+		for(int i=0;i<d.size();i++) {
+			if(dataset.containsMoreThanOneTitle(d.get(i).getTitle())) {
+				errors++;
+			}
+		}
+		System.out.println("Bloom Filter: percentage of true positives is: " + (double) (100-(errors*100)/d.size()) + "% (" + (d.size() - errors) + "/" + d.size() + ")");
+		errors = 0;
+		for(int i=0;i<randomValues.length;i++) {
+			if(dataset.containsMoreThanOneTitle(randomValues[i])) {
+				errors++;
+			}
+		}
+		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (errors*100)/randomValues.length + "%  (" + errors + "/" + randomValues.length + ")");
+	}
+	
+	private static void testBloomFilterIncremental(Dataset dataset, String[] randomValues) {
+		System.out.println("BLOOM FILTER INCREMENTAL TEST...");
+		ArrayList<Publication> d = dataset.getDataset();
+		int errors = 0;
+		for(int i=0;i<d.size();i++) {
+			if(!dataset.containsTitleIncremental(d.get(i).getTitle())) {
+				System.out.println("ERROR - " + d.get(i).getTitle());
+				errors++;
+			}
+		}
+		System.out.println("Bloom Filter: percentage of true positives is: " + (double) (100-(errors*100)/d.size()) + "% (" + (d.size() - errors) + "/" + d.size() + ")");
+		errors = 0;
+		for(int i=0;i<randomValues.length;i++) {
+			if(dataset.containsTitleIncremental(randomValues[i])) {
+				errors++;
+			}
+		}
+		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (errors*100)/randomValues.length + "%  (" + errors + "/" + randomValues.length + ")");
+	}
+	
+	private static void testBloomFilterOptimized(Dataset dataset, String[] randomValues) {
+		System.out.println("BLOOM FILTER OPTIMIZED TEST...");
 		ArrayList<Publication> d = dataset.getDataset();
 		int errors = 0;
 		for(int i=0;i<d.size();i++) {
@@ -100,13 +142,20 @@ public class Test {
 		}
 		System.out.println("Bloom Filter: percentage of true positives is: " + (double) (100-(errors*100)/d.size()) + "% (" + (d.size() - errors) + "/" + d.size() + ")");
 		errors = 0;
-		for(int i=0;i<value;i++) {
-			String random = getRandomString(5,20);
-			if(dataset.containsTitle(random)) {
+		for(int i=0;i<randomValues.length;i++) {
+			if(dataset.containsTitle(randomValues[i])) {
 				errors++;
 			}
 		}
-		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (errors*100)/value + "%  (" + errors + "/" + value + ")");
+		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (errors*100)/randomValues.length + "%  (" + errors + "/" + randomValues.length + ")");
+	}
+	
+	private static String[] getRandomStrings(int values) {
+		String[] strings = new String[values];
+		for(int i=0;i<values;i++) {
+			strings[i] = getRandomString(5,20);
+		}
+		return strings;
 	}
 	
 	private static String getRandomString(int min, int max) {
