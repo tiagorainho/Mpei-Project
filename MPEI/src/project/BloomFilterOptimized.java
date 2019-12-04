@@ -9,7 +9,7 @@ public class BloomFilterOptimized implements BloomFilter {
 	
 	public BloomFilterOptimized(int size, int numHashFunctions) {
 		this.arrayVirtualLength = calculateOptimalArraySize(size, numHashFunctions);
-		this.array = new byte[(int) Math.ceil(arrayVirtualLength/8)+1];
+		this.array = new byte[(int) Math.ceil(arrayVirtualLength/8)];
 		this.numHashFunctions = numHashFunctions;
 	}
 	
@@ -22,7 +22,7 @@ public class BloomFilterOptimized implements BloomFilter {
 			subIndex = (int) aux % 8;
 			if(getBit(array[index], subIndex) == 0) {
 				array[index] = (byte) (array[index] + steps[subIndex]);
-			}			
+			}
 		}
 	}
 	

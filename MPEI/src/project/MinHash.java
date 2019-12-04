@@ -1,7 +1,9 @@
 package project;
 
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 public class MinHash {
 	private final static int maxRandomValue = 1000;
@@ -11,6 +13,7 @@ public class MinHash {
 	private int[][] signatures;
 	private int shinglesLength;
 	private double threshHold;
+	private static final boolean removeSpaces = false;
 	
 	
 	/*
@@ -178,18 +181,43 @@ public class MinHash {
 		int[] signature = new int[this.numPermutacoes];
 		signature = setArrayToValue(signature, this.largePrimeNumber);
 		int auxSig, auxHash;
-		//for(int i=0;i<this.numPermutacoes;i++) {
-			for(int k=0;k<shingles.length;k++) {
-				auxHash = Hash.hash(shingles[k]);
-				for(int j=0;j<this.A.length;j++) {
-					auxSig = (Math.abs(this.A[j] * auxHash) + this.B[j]) % this.largePrimeNumber;
-					if(auxSig < signature[j]) {
-						signature[j] = auxSig;
-					}
+		for(int k=0;k<shingles.length;k++) {
+			auxHash = Hash.hash(shingles[k]);
+			for(int j=0;j<this.numPermutacoes;j++) {  //this.A.length
+				auxSig = (Math.abs(this.A[j] * auxHash) + this.B[j]) % this.largePrimeNumber;
+				if(auxSig < signature[j]) {
+					signature[j] = auxSig;
 				}
 			}
-		//}
+		}
 		return signature;
+	}
+	
+	public double jaccardCoeficient(String s1, String s2) {
+		
+		List<String> shingles1 = new LinkedList<String>();
+		List<String> shingles2 = new LinkedList<String>();
+		String[] s1Array = getShingles(s1);
+		String[] s2Array = getShingles(s2);
+		for(int i=0; i<s1Array.length;i++) {
+			shingles1.add(s1Array[i]);
+		}
+		for(int i=0; i<s2Array.length;i++) {
+			shingles2.add(s2Array[i]);
+		}
+		HashSet<String> interception = new HashSet<String>(shingles2);
+		HashSet<String> union = new HashSet<String>(shingles1);
+		interception.retainAll(shingles2);
+		union.addAll(shingles2);
+		return (double) interception.size() / union.size();
+	}
+	
+	private List<String> convertStringArrayToList(String[] str) {
+		List<String> list = new LinkedList<String>();
+ 		for(String aux: str) {
+			list.add(aux);
+		}
+		return list;
 	}
 	
 	public void showSignatures() {
@@ -213,7 +241,9 @@ public class MinHash {
 	}
 	
 	private String[] getShingles(String str) {
-		str = str.replace(" ", "");
+		if(this.removeSpaces) {
+			str = str.replace(" ", "");
+		}
 		if(str.length() - this.shinglesLength + 1 > 0) {
 			String[] list = new String[str.length() - this.shinglesLength + 1];
 			for(int i=0;i<str.length() - this.shinglesLength + 1;i++) {

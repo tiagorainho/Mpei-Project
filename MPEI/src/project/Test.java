@@ -14,18 +14,27 @@ public class Test {
 	static final String fileName3 = "src/project/Articles/articles3.csv";
 	
 	public static void doTest(String fileName, String sep) throws FileNotFoundException {
-		
+		/*
 		Dataset dataset = new Dataset(50000);
-		//dataset.setMaxValues(50000);
-		
+		dataset.setMaxValues(10000);
 		dataset.addValuesCSV(fileName);
-		
-		//dataset.addValuesCSV(fileName2);
-		//dataset.addValuesCSV(fileName3);
-		
 		System.out.println(dataset.toString());
+		*/
 		
-		//dataset.showSimilarTitles(0.8, 100);
+		//dataset.showSimilarTitles();
+		//dataset.getSameTitleSimilarContent(0.4);
+		
+		String[] list = {"porra so quero acabar este projeto", "ola como estas tudo bem", "ola tudo bem como estas"};
+		MinHash minHash = new MinHash(100);
+		minHash.add(list);
+		
+		int v1 = 0;
+		int v2 = 1;
+		System.out.println("Teorico: " + minHash.jaccardCoeficient(list[v1], list[v2]));
+		System.out.println("Pratico: " + minHash.getSimilarity(v1, v2));
+		
+		
+		//dataset.showSimilarTitles(0.8, 10);
 		//dataset.getSameNews(0.8, 100);
 		
 		//dataset.showSimilarNews(0.8, 100);
@@ -47,8 +56,7 @@ public class Test {
 		
 		
 		
-		
-		testBloomFilter(dataset, 100000);
+		//testBloomFilter(dataset, 1000000);
 	}
 	
 	private static Menu getMenu() {
@@ -86,7 +94,6 @@ public class Test {
 	private static void testBloomFilter(Dataset dataset, int value) {
 		String[] randomStrings = getRandomStrings(value);
 		testBloomFilterOptimized(dataset, randomStrings);
-		//System.exit(0);
 		testBloomFilterIncremental(dataset, randomStrings);
 		testBloomFilterIncrementalMoreThanOne(dataset, randomStrings);
 	}
@@ -94,20 +101,20 @@ public class Test {
 	private static void testBloomFilterIncrementalMoreThanOne(Dataset dataset, String[] randomValues) {
 		System.out.println("BLOOM FILTER INCREMENTAL \"More than one\" TEST...");
 		ArrayList<Publication> d = dataset.getDataset();
-		int errors = 0;
+		int count = 0;
 		for(int i=0;i<d.size();i++) {
 			if(dataset.containsMoreThanOneTitle(d.get(i).getTitle())) {
-				errors++;
+				count++;
 			}
 		}
-		System.out.println("Bloom Filter: percentage of true positives is: " + (double) (100-(errors*100)/d.size()) + "% (" + (d.size() - errors) + "/" + d.size() + ")");
-		errors = 0;
+		System.out.println("Bloom Filter: percentage of mapped keys more than once is: " + (double) (count*100)/d.size() + "% (" + (d.size() - count) + "/" + d.size() + ")");
+		count = 0;
 		for(int i=0;i<randomValues.length;i++) {
 			if(dataset.containsMoreThanOneTitle(randomValues[i])) {
-				errors++;
+				count++;
 			}
 		}
-		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (errors*100)/randomValues.length + "%  (" + errors + "/" + randomValues.length + ")");
+		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (count*100)/randomValues.length + "%  (" + count + "/" + randomValues.length + ")");
 	}
 	
 	private static void testBloomFilterIncremental(Dataset dataset, String[] randomValues) {
@@ -148,6 +155,7 @@ public class Test {
 			}
 		}
 		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (errors*100)/randomValues.length + "%  (" + errors + "/" + randomValues.length + ")");
+		BloomFilterIncremental a = dataset.getBloomFilterIncremental();
 	}
 	
 	private static String[] getRandomStrings(int values) {

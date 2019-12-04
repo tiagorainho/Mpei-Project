@@ -6,6 +6,16 @@ public class BloomFilterIncremental implements BloomFilter {
 	private static final double prob = 0.001;
 	private static final int maxValue = 127; // 2^7 -1
 	
+	public void testMoreThanOne() {
+		int count = 0;
+		for(int i = 0; i< array.length;i++) {
+			if(array[i]>1) {
+				count++;
+			}
+		}
+		System.out.println("More than one count: " + count);
+	}
+	
 	public BloomFilterIncremental(int size, int numHashFunctions) {
 		this.numHashFunctions = numHashFunctions;
 		this.array = new byte[calculateOptimalArraySize(size, numHashFunctions)];
@@ -15,9 +25,9 @@ public class BloomFilterIncremental implements BloomFilter {
 		int index;
 		for(int i=0;i<this.numHashFunctions;i++) {
 			index = Math.abs(adjustToSize(Hash.hash(content + i)));
-			//if(array[index] < this.maxValue) {
+			if(array[index] < this.maxValue) {
 				array[index] = (byte) (array[index] + 1);
-			//}
+			}
 		}
 	}
 	

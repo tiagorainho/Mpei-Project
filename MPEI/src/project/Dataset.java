@@ -56,23 +56,54 @@ public class Dataset {
 		
 	}
 	
-	public void getSameNews(double threshHold, int permutations) {
-		getSameNews(threshHold, permutations, 10);
+	public void getSameTitleSimilarContent(double threshHold, int permutations) {
+		getSameTitleSimilarContent(threshHold, permutations, 10);
 	}
 	
-	// devolver uma lista de noticias repetidas com titulos iguais (conteudo similar e titulo repetido)
-	public void getSameNews(double threshHold, int permutations, int shingleLen) {
-		List<String> list = new LinkedList<String>();
-		for(int i=0;i<this.dataset.size();i++) {
-			if(this.titlesBloomFilterIncremental.contains(this.dataset.get(i).getTitle())) {
-				list.add(this.dataset.get(i).getContent());
-			}
-		}
-		System.out.println("Same title news count: " + list.size());
+	public void getSameTitleSimilarContent(double threshHold) {
+		getSameTitleSimilarContent(threshHold, 100, 10);
+	}
+	
+	public void getSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
+		LinkedList<String> list = getEqualTitles();
+		System.out.println(list.size());
 		MinHash minHash = new MinHash(permutations);
 		minHash.setThreshHold(threshHold);
 		minHash.showSimilars();
-		
+		minHash.add(list);
+		List<LinkedList<Integer>> resp = minHash.getSimilars();
+		for(int i=0;i<resp.size();i++) {
+			LinkedList<Integer> llAux = resp.get(i);
+			for(int j=0;j<llAux.size();j++) {
+				System.out.printf("%d - %s\n",i, list.get(llAux.get(j)));
+			}
+		}
+		if(resp.size() == 0) {
+			System.out.println("No match");
+		}	
+	}
+	
+	public LinkedList<String> getEqualTitles(){
+		List<Publication> aux = new LinkedList<Publication>();
+		LinkedList<String> list = new LinkedList<String>();
+		for(int i=0;i<this.dataset.size();i++) {
+			if(this.titlesBloomFilterIncremental.containsMoreThanOne(this.dataset.get(i).getTitle())) {
+				aux.add(this.dataset.get(i));
+			}
+		}
+		for(int i=0;i<aux.size();i++) {
+			int count = 0;
+			for(int j=0;j<aux.size();j++) {
+				if(aux.get(i).getTitle().equals(aux.get(j).getTitle())) {
+					count++;
+				}
+			}
+			if(count > 1) {
+				list.add(aux.get(i).getContent());
+				System.out.println(aux.get(i).getTitle());
+			}
+		}
+		return list;
 	}
 	
 	public void showSimilarNews(double threshHold, int permutations, int shingleLen) {
@@ -99,12 +130,26 @@ public class Dataset {
 		durationMiliseconds = System.currentTimeMillis() - start;
 		durationSeconds = durationMiliseconds/ (float) 1000;
 		try {
-			registLog(list, news , "src/logs/news.txt");
+			String sep = "/";
+			if(System.getProperty("os.name").contains("Windows")) {
+				sep = "\\";
+			}
+			registLog(list, news , "src" + sep + "logs" + sep + "news.txt");
 		} catch (IOException e) {
 			System.out.println("Error writing to log file");
 			e.printStackTrace();
 		}
 		System.out.printf("Min Hash finished in %.3f seconds, %d combinations found and %d news are at least %.2f similar\n",durationSeconds, list.size(), count, threshHold);
+	}
+	
+	private int getLength() {
+		int len = this.dataset.size();
+		if(this.maxValues != 0) {
+			if(this.dataset.size() > this.maxValues) {
+				len = this.maxValues;
+			}
+		}
+		return len;
 	}
 	
 	public void showSimilarTitles(double threshHold, int permutations) {
@@ -126,14 +171,19 @@ public class Dataset {
 			}
 		}
 		long durationMiliseconds = System.currentTimeMillis() - start;
-		float durationSeconds = durationMiliseconds/ (float) 1000;
+		float durationSeconds = durationMiliseconds/ (float) 1000;		
+		System.out.printf("Min Hash finished in %.3f seconds, %d combinations found and %d titles are at least %.2f similar\n",durationSeconds, list.size(), count, threshHold);
+		System.out.println("Writing to log file");
 		try {
-			registLog(list, titles , "src/logs/titles.txt");
+			String sep = "/";
+			if(System.getProperty("os.name").contains("Windows")) {
+				sep = "\\";
+			}
+			registLog(list, titles , "src" + sep + "logs" + sep + "titles.txt");
 		} catch (IOException e) {
 			System.out.println("Error writing to log file");
 			e.printStackTrace();
 		}
-		System.out.printf("Min Hash finished in %.3f seconds, %d combinations found and %d titles are at least %.2f similar\n",durationSeconds, list.size(), count, threshHold);
 	}
 	
 	public void showSimilarTitles() {
@@ -213,6 +263,7 @@ public class Dataset {
 	public void addToDataset(String[] parts) {
 		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), parts[9], Integer.parseInt(parts[0])));
 		titlesBloomFilter.add(parts[2].trim());
+		titlesBloomFilterIncremental.add(parts[2].trim());
 	}
 	
 	public void addValuesCSV(File fileName, String sep) {
@@ -352,6 +403,11 @@ public class Dataset {
 			newlist.add(str);
 		}
 		return newlist;
+	}
+	
+	public BloomFilterIncremental getBloomFilterIncremental() {
+		// for testing
+		return this.titlesBloomFilterIncremental;
 	}
 	
 	public List<String> getTitles() {
