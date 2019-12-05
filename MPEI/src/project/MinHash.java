@@ -57,7 +57,7 @@ public class MinHash {
 		this.removeSpaces = removeSpaces;
 	}
 	
-	public List<LinkedList<Integer>> getSimilars(){
+	public List<LinkedList<Integer>> getSimilaresWithConstantField(List<String> similars, List<String> constants){
 		boolean found;
 		LinkedList<Integer> llAux;
 		List<LinkedList<Integer>> list = new LinkedList<LinkedList<Integer>>();
@@ -69,12 +69,54 @@ public class MinHash {
 			llAux = new LinkedList<Integer>();
 			found = false;
 			for(int j=i+1;j<this.signatures.length;j++) {
+				
+				if(constants.get(i).equals(constants.get(j))) {
+					if(!used.contains(j)) {
+						if(areSimilar(i, j)) {
+							found = true;
+							llAux.add(j);
+							used.add(j);
+						}
+					}
+				}
 				// ############ show progress ##################
 				if(iteration == iterations*countPercent) {
 					if(countPercent != 10) {
 						System.out.printf("%d%%.. ", countPercent*10);
 					}
 					countPercent++;
+				}
+				// #############################################
+				
+				iteration++;
+			}
+			if(found) {
+				llAux.addFirst(i);
+				list.add(llAux);
+			}
+		}
+		System.out.println("Done!");
+		return list;
+	}
+	
+	public List<LinkedList<Integer>> getSimilars(){
+		boolean found;
+		LinkedList<Integer> llAux;
+		List<LinkedList<Integer>> list = new LinkedList<LinkedList<Integer>>();
+		HashSet<Integer> used = new HashSet<Integer>();
+		int countPercent = 0;
+		int iterations = (int) Math.ceil((this.signatures.length*(this.signatures.length-1))/2);
+		int iteration = 0;
+		for(int i=0;i<this.signatures.length-1;i++) {			
+			llAux = new LinkedList<Integer>();
+			found = false;
+			for(int j=i+1;j<this.signatures.length;j++) {
+				// ############ show progress ##################
+				if(iteration == iterations*countPercent/100) {
+					if(countPercent != 100) {
+						System.out.printf("%d%%.. ", countPercent);
+					}
+					countPercent += 10;
 				}
 				// #############################################
 				if(!used.contains(j)) {
@@ -91,6 +133,8 @@ public class MinHash {
 				list.add(llAux);
 			}
 		}
+		System.out.println("\nIterations: " + iterations);
+		System.out.println("Iteration: " + iteration);
 		System.out.println("Done!");
 		return list;
 	}

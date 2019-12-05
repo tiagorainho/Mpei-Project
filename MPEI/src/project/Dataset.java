@@ -71,8 +71,8 @@ public class Dataset {
 	}
 	
 	public List<LinkedList<Integer>> getSameTitleSimilarContent(List<Publication> publications, double threshHold, int permutations, int shingleLen) {
-		LinkedList<String> news = new LinkedList<String>();
-		LinkedList<String> titles = new LinkedList<String>();
+		List<String> news = new LinkedList<String>();
+		List<String> titles = new LinkedList<String>();
 		for(Publication p: publications) {
 			news.add(p.getContent());
 			titles.add(p.getTitle());
@@ -82,9 +82,9 @@ public class Dataset {
 		MinHash minHash = new MinHash(permutations);
 		minHash.setThreshHold(threshHold);
 		minHash.add(news);
-		List<LinkedList<Integer>> resp = minHash.getSimilars();
+		//List<LinkedList<Integer>> resp = minHash.getSimilars();
 		
-		//List<LinkedList<Integer>> resp = MinHash.getSimilaresWithConstant();
+		List<LinkedList<Integer>> resp = minHash.getSimilaresWithConstantField(news, titles);
 		registLog(resp, news, "news.txt");
 		registLog(resp, titles, "titles.txt");
 		return resp;
@@ -98,7 +98,14 @@ public class Dataset {
 		return getSameTitleSimilarContent(threshHold, 100, 10);
 	}
 	
-	public List<Publication> getPublicationsWithEqualTitles(){
+	public void showPublicationsWithEqualTitles() {
+		List<Publication> list = getPublicationsWithEqualTitles();
+		for(Publication p: list) {
+			System.out.println(p.toString());
+		}
+	}
+	
+	private List<Publication> getPublicationsWithEqualTitles(){
 		List<Publication> aux = new LinkedList<Publication>();
 		List<Publication> list = new LinkedList<Publication>();
 		for(int i=0;i<this.dataset.size();i++) {

@@ -18,13 +18,15 @@ public class Test {
 		
 		
 		Dataset dataset = new Dataset(50000);
-		dataset.setMaxValues(20000);
+		dataset.setMaxValues(10451);
 		dataset.addValuesCSV(fileName);
+		dataset.addValuesCSV(fileName2);
+		dataset.addValuesCSV(fileName3);
 		System.out.println(dataset.toString());
 		
 		
-		dataset.showSimilarTitles(0.9, 100);
-		//dataset.showSameTitleSimilarContent(0.4);
+		dataset.showSimilarTitles(0.8, 100);
+		//dataset.showSameTitleSimilarContent(0.1);
 		
 		
 		/*
