@@ -53,53 +53,58 @@ public class Dataset {
 	}
 	
 	public void showSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
-		System.out.println("Receiving titles..");
-		LinkedList<String> list = getEqualTitles();
-		System.out.println("Getting similarities..");
-		List<LinkedList<Integer>> resp = getSameTitleSimilarContent(list, threshHold, permutations, shingleLen);
+		List<Publication> publications = getPublicationsWithEqualTitles();
+		LinkedList<String> news = new LinkedList<String>();
+		for(Publication p: publications) {
+			news.add(p.getContent());
+		}
+		List<LinkedList<Integer>> resp = getSameTitleSimilarContent(publications, threshHold, permutations, shingleLen);
 		for(int i=0;i<resp.size();i++) {
 			LinkedList<Integer> llAux = resp.get(i);
 			for(int j=0;j<llAux.size();j++) {
-				System.out.printf("%d - %s\n",i, list.get(llAux.get(j)));
+				System.out.printf("%d - %s\n",i, news.get(llAux.get(j)));
 			}
 		}
 		if(resp.size() == 0) {
 			System.out.println("No match");
 		}
-		
 	}
 	
-	public List<LinkedList<Integer>> getSameTitleSimilarContent(LinkedList<String> list, double threshHold, int permutations, int shingleLen) {
+	public List<LinkedList<Integer>> getSameTitleSimilarContent(List<Publication> publications, double threshHold, int permutations, int shingleLen) {
+		LinkedList<String> news = new LinkedList<String>();
+		LinkedList<String> titles = new LinkedList<String>();
+		for(Publication p: publications) {
+			news.add(p.getContent());
+			titles.add(p.getTitle());
+			System.out.println(p.getTitle());
+		}
 		MinHash minHash = new MinHash(permutations);
 		minHash.setThreshHold(threshHold);
 		minHash.showSimilars();
-		minHash.add(list);
+		minHash.add(news);
 		List<LinkedList<Integer>> resp = minHash.getSimilars();
+		registLog(resp, news, "news.txt");
+		registLog(resp, titles, "titles.txt");
 		return resp;
 	}
 	
 	public List<LinkedList<Integer>> getSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
-		LinkedList<String> list = getEqualTitles();
-		MinHash minHash = new MinHash(permutations);
-		minHash.setThreshHold(threshHold);
-		minHash.showSimilars();
-		minHash.add(list);
-		List<LinkedList<Integer>> resp = minHash.getSimilars();
-		return resp;
+		return getSameTitleSimilarContent(getPublicationsWithEqualTitles(), threshHold, permutations, shingleLen);
 	}
 	
 	public List<LinkedList<Integer>> getSameTitleSimilarContent(double threshHold) {
 		return getSameTitleSimilarContent(threshHold, 100, 10);
 	}
 	
-	public LinkedList<String> getEqualTitles(){
+	public List<Publication> getPublicationsWithEqualTitles(){
 		List<Publication> aux = new LinkedList<Publication>();
-		LinkedList<String> list = new LinkedList<String>();
+		List<Publication> list = new LinkedList<Publication>();
 		for(int i=0;i<this.dataset.size();i++) {
 			if(this.titlesBloomFilterIncremental.containsMoreThanOne(this.dataset.get(i).getTitle())) {
 				aux.add(this.dataset.get(i));
 			}
 		}
+		// clean up false positives
 		for(int i=0;i<aux.size();i++) {
 			int count = 0;
 			for(int j=0;j<aux.size();j++) {
@@ -108,7 +113,7 @@ public class Dataset {
 				}
 			}
 			if(count > 1) {
-				list.add(aux.get(i).getContent());
+				list.add(aux.get(i));
 			}
 		}
 		return list;
@@ -137,16 +142,7 @@ public class Dataset {
 		}
 		durationMiliseconds = System.currentTimeMillis() - start;
 		durationSeconds = durationMiliseconds/ (float) 1000;
-		try {
-			String sep = "/";
-			if(System.getProperty("os.name").contains("Windows")) {
-				sep = "\\";
-			}
-			registLog(list, news , "src" + sep + "logs" + sep + "news.txt");
-		} catch (IOException e) {
-			System.out.println("Error writing to log file");
-			e.printStackTrace();
-		}
+		registLog(list, news , "news.txt");
 		System.out.printf("Min Hash finished in %.3f seconds, %d combinations found and %d news are at least %.2f similar\n",durationSeconds, list.size(), count, threshHold);
 	}
 	
@@ -160,7 +156,7 @@ public class Dataset {
 		return len;
 	}
 	
-	public void showSimilarTitles(double threshHold, int permutations) {
+	public void showSimilarTitles(double threshHold, int permutations) throws IOException {
 		System.out.println("Preparing for Min Hashing...");
 		MinHash minHash = new MinHash(permutations);
 		minHash.setThreshHold(threshHold);
@@ -182,23 +178,14 @@ public class Dataset {
 		float durationSeconds = durationMiliseconds/ (float) 1000;		
 		System.out.printf("Min Hash finished in %.3f seconds, %d combinations found and %d titles are at least %.2f similar\n",durationSeconds, list.size(), count, threshHold);
 		System.out.println("Writing to log file");
-		try {
-			String sep = "/";
-			if(System.getProperty("os.name").contains("Windows")) {
-				sep = "\\";
-			}
-			registLog(list, titles , "src" + sep + "logs" + sep + "titles.txt");
-		} catch (IOException e) {
-			System.out.println("Error writing to log file");
-			e.printStackTrace();
-		}
+		registLog(list, titles, "titles.txt");
 	}
 	
-	public void showSimilarTitles() {
+	public void showSimilarTitles() throws IOException {
 		showSimilarTitles(0.5, 100);
 	}
 	
-	public void showSimilarTitles(double threshHold) {
+	public void showSimilarTitles(double threshHold) throws IOException {
 		showSimilarTitles(threshHold, 100);
 	}
 	
@@ -213,7 +200,13 @@ public class Dataset {
 		return newList;
 	}
 	
-	private void registLog(List<LinkedList<Integer>> links, List<String> list, String fileName) throws IOException {
+	private void registLog(List<LinkedList<Integer>> links, List<String> list, String fileName) {
+		String sep = "/";
+		if(System.getProperty("os.name").contains("Windows")) {
+			sep = "\\";
+		}
+		fileName = "src" + sep + "logs" + sep + fileName;
+		
 		if(links.size() == 0) {
 			System.out.println("No information to save on log file");
 			return;
@@ -228,7 +221,13 @@ public class Dataset {
 			}
 			f = new File(fileName);
 		}
-		PrintWriter pw = new PrintWriter(new FileWriter(f), false);
+		PrintWriter pw = null;
+		try {
+			pw = new PrintWriter(new FileWriter(f), false);
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
 		for(int i=0;i<links.size();i++) {
 			LinkedList<Integer> llAux = links.get(i);
 			for(int j=0;j<llAux.size();j++) {
@@ -237,7 +236,7 @@ public class Dataset {
 			pw.write("\n\n");
 			pw.write("########################################################################################################################\n\n");
 		}
-		System.out.println("Log file: " + f.getAbsolutePath());
+		System.out.println("Saved on log file: " + f.getAbsolutePath());
 		pw.close();
 	}
 	
@@ -381,9 +380,7 @@ public class Dataset {
 		String content;
 		for(int i=0;i<value;i++) {
 			content = this.dataset.get(i).getContent();
-			//if(content.length() != 0) {
-				list.add(content);
-			//}
+			list.add(content);
 		}
 		List<String> newlist = new LinkedList<String>();
 		for(String str: list) {

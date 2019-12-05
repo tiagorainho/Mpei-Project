@@ -8,7 +8,7 @@ public class Main {
 	static final String fileName2 = "src/project/Articles/articles2.csv";
 	static final String fileName3 = "src/project/Articles/articles3.csv";
 	
-	public static void main(String[] args) throws FileNotFoundException {
+	public static void main(String[] args) throws IOException {
 		
 		Test.doTest(fileName1, ",");
 		

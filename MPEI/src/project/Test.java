@@ -2,6 +2,7 @@ package project;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -13,17 +14,17 @@ public class Test {
 	static final String fileName2 = "src/project/Articles/articles2.csv";
 	static final String fileName3 = "src/project/Articles/articles3.csv";
 	
-	public static void doTest(String fileName, String sep) throws FileNotFoundException {
+	public static void doTest(String fileName, String sep) throws IOException {
 		
 		
 		Dataset dataset = new Dataset(50000);
-		//dataset.setMaxValues(50000);
+		dataset.setMaxValues(20000);
 		dataset.addValuesCSV(fileName);
 		System.out.println(dataset.toString());
 		
 		
-		//dataset.showSimilarTitles(0.8);
-		dataset.showSameTitleSimilarContent(0.8);
+		//dataset.showSimilarTitles(0.9, 200);
+		dataset.showSameTitleSimilarContent(0.4);
 		
 		
 		/*

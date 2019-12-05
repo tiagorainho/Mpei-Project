@@ -62,7 +62,7 @@ public class MinHash {
 		boolean found;
 		LinkedList<Integer> llAux;
 		List<LinkedList<Integer>> list = new LinkedList<LinkedList<Integer>>();
-		LinkedList<Integer> used = new LinkedList<Integer>();
+		HashSet<Integer> used = new HashSet<Integer>();
 		int countPercent = 0;
 		int iterations = (int) Math.ceil(((this.signatures.length*(this.signatures.length-1))/2)/10);
 		int iteration = 0;
@@ -70,13 +70,6 @@ public class MinHash {
 			llAux = new LinkedList<Integer>();
 			found = false;
 			for(int j=i+1;j<this.signatures.length;j++) {
-				if(!used.contains(j)) {
-					if(areSimilar(i, j)) {
-						found = true;
-						llAux.add(j);
-						used.add(j);
-					}
-				}
 				// ############ show progress ##################
 				if(iteration == iterations*countPercent) {
 					if(countPercent != 10) {
@@ -85,6 +78,13 @@ public class MinHash {
 					countPercent++;
 				}
 				// #############################################
+				if(!used.contains(j)) {
+					if(areSimilar(i, j)) {
+						found = true;
+						llAux.add(j);
+						used.add(j);
+					}
+				}
 				iteration++;
 			}
 			if(found) {
@@ -200,7 +200,10 @@ public class MinHash {
 	}
 	
 	public double jaccardCoeficient(String s1, String s2) {
-		
+		if(this.removeSpaces) {
+			s1 = s1.replace(" ", "");
+			s2 = s2.replace(" ", "");
+		}
 		List<String> shingles1 = new LinkedList<String>();
 		List<String> shingles2 = new LinkedList<String>();
 		String[] s1Array = getShingles(s1);
