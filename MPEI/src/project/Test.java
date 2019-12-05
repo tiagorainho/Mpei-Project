@@ -23,8 +23,8 @@ public class Test {
 		System.out.println(dataset.toString());
 		
 		
-		//dataset.showSimilarTitles(0.9, 200);
-		dataset.showSameTitleSimilarContent(0.4);
+		dataset.showSimilarTitles(0.9, 100);
+		//dataset.showSameTitleSimilarContent(0.4);
 		
 		
 		/*

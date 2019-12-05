@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Set;
 
 public class MinHash {
-	private final static int maxRandomValue = 1000;
 	private final static int largePrimeNumber = 10007;
 	private int numPermutacoes;
 	private int[] A, B;
@@ -44,10 +43,10 @@ public class MinHash {
 		this(numPermutacoes, letraLen, 0.6);
 	}
 	
-	public List<Integer> getSimilars(int v1) {
+	public List<Integer> getSimilars(int numValues) {
 		List<Integer> list = new LinkedList<Integer>();
-		for(int i=0;i<v1;i++) {
-			if(areSimilar(v1, i)) {
+		for(int i=0;i<numValues;i++) {
+			if(areSimilar(numValues, i)) {
 				list.add(i);
 			}
 		}
@@ -111,14 +110,6 @@ public class MinHash {
 			list.add(llAux);
 		}
 		return list;
-	}
-	
-	private void showIntegerList(List<Integer> l) {
-		System.out.println("-------");
-		for(Integer a: l) {
-			System.out.printf(a + " ");
-		}
-		System.out.println("\n-------");
 	}
 	
 	public void showSimilars(List<LinkedList<Integer>> list) {

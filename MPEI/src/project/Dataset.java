@@ -78,11 +78,13 @@ public class Dataset {
 			titles.add(p.getTitle());
 			System.out.println(p.getTitle());
 		}
+		
 		MinHash minHash = new MinHash(permutations);
 		minHash.setThreshHold(threshHold);
-		minHash.showSimilars();
 		minHash.add(news);
 		List<LinkedList<Integer>> resp = minHash.getSimilars();
+		
+		//List<LinkedList<Integer>> resp = MinHash.getSimilaresWithConstant();
 		registLog(resp, news, "news.txt");
 		registLog(resp, titles, "titles.txt");
 		return resp;
@@ -268,7 +270,7 @@ public class Dataset {
 	}
 	
 	public void addToDataset(String[] parts) {
-		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), parts[9], Integer.parseInt(parts[0])));
+		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), parts[9]));
 		titlesBloomFilter.add(parts[2].trim());
 		titlesBloomFilterIncremental.add(parts[2].trim());
 	}
@@ -305,7 +307,7 @@ public class Dataset {
 	
 	private void addToDataset(String[] parts, String sep) {
 		int id = Integer.parseInt(parts[0].trim());
-		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), getContent(parts,9, sep), id));
+		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), getContent(parts,9, sep)));
 		titlesBloomFilter.add(parts[2].trim());
 	}
 	
@@ -474,5 +476,26 @@ public class Dataset {
 		}
 		return lines;
 	}
+	
+	/// ########################################################33
+	public int getMaxValues() {
+		return this.maxValues;
+	}
+	
+	public int size() {
+		return dataset.size();
+	}
+	
+	public void addToDataset(Publication p) {
+		dataset.add(p);
+		titlesBloomFilter.add(p.getTitle());
+		this.maxValues++;
+	}
+	
+	public void showSimilarNews(double threshHold) {
+		showSimilarNews(threshHold, 100, 10);
+	}
+	
+	/// ########################################################33
 	
 }

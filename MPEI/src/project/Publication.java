@@ -3,22 +3,17 @@ import java.util.Date;
 
 public class Publication {
 	private int id;
-	//private int externalID;
 	private String author;
 	private String title;
 	private String publicator;
 	private String content;
-	//private Date date;
 	
-	public Publication(int id, String author, String title, String publicator, String content, int idExt) {
-		//this.externalID = idExt;
+	public Publication(int id, String author, String title, String publicator, String content) {
 		this.author = author;
 		this.title = title;
 		this.publicator = publicator;
 		this.content = content;
 		this.id = id;
-		//this.date = date;
-		
 	}
 	
 	public String getContent() {
