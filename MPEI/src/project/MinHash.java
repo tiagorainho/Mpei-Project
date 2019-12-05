@@ -13,7 +13,7 @@ public class MinHash {
 	private int[][] signatures;
 	private int shinglesLength;
 	private double threshHold;
-	private static final boolean removeSpaces = false;
+	private static boolean removeSpaces = true;
 	
 	
 	/*
@@ -27,7 +27,7 @@ public class MinHash {
 	 */
 	
 	
-	public MinHash(int numPermutacoes, int letraLen, double threshHold, int randomValues) {
+	public MinHash(int numPermutacoes, int letraLen, double threshHold) {
 		this.numPermutacoes = numPermutacoes;
 		this.A = getRandomValues(numPermutacoes);
 		this.B = getRandomValues(this.A);
@@ -37,11 +37,11 @@ public class MinHash {
 	}
 	
 	public MinHash(int numPermutacoes) {
-		this(numPermutacoes, 3, 0.6, 10);
+		this(numPermutacoes, 3, 0.6);
 	}
 	
 	public MinHash(int numPermutacoes, int letraLen) {
-		this(numPermutacoes, letraLen, 0.6, 10);
+		this(numPermutacoes, letraLen, 0.6);
 	}
 	
 	public List<Integer> getSimilars(int v1) {
@@ -54,22 +54,19 @@ public class MinHash {
 		return list;
 	}
 	
+	public void setRemoveSpaces(boolean removeSpaces) {
+		this.removeSpaces = removeSpaces;
+	}
+	
 	public List<LinkedList<Integer>> getSimilars(){
 		boolean found;
 		LinkedList<Integer> llAux;
 		List<LinkedList<Integer>> list = new LinkedList<LinkedList<Integer>>();
 		LinkedList<Integer> used = new LinkedList<Integer>();
-		int count = 0;
-		int part = this.signatures.length/10; // 	((this.signatures.length*numPermutacoes)/2)/10
-		for(int i=0;i<this.signatures.length-1;i++) {
-			// ############ show progress ##################
-			if(i == part*count) {
-				if(count != 10) {
-					System.out.printf("%d.. ", count*10);
-					count++;
-				}
-			}
-			// #############################################
+		int countPercent = 0;
+		int iterations = (int) Math.ceil(((this.signatures.length*(this.signatures.length-1))/2)/10);
+		int iteration = 0;
+		for(int i=0;i<this.signatures.length-1;i++) {			
 			llAux = new LinkedList<Integer>();
 			found = false;
 			for(int j=i+1;j<this.signatures.length;j++) {
@@ -80,6 +77,15 @@ public class MinHash {
 						used.add(j);
 					}
 				}
+				// ############ show progress ##################
+				if(iteration == iterations*countPercent) {
+					if(countPercent != 10) {
+						System.out.printf("%d%%.. ", countPercent*10);
+					}
+					countPercent++;
+				}
+				// #############################################
+				iteration++;
 			}
 			if(found) {
 				llAux.addFirst(i);
@@ -107,7 +113,7 @@ public class MinHash {
 		return list;
 	}
 	
-	private void showList(List<Integer> l) {
+	private void showIntegerList(List<Integer> l) {
 		System.out.println("-------");
 		for(Integer a: l) {
 			System.out.printf(a + " ");
@@ -205,7 +211,7 @@ public class MinHash {
 		for(int i=0; i<s2Array.length;i++) {
 			shingles2.add(s2Array[i]);
 		}
-		HashSet<String> interception = new HashSet<String>(shingles2);
+		HashSet<String> interception = new HashSet<String>(shingles1);
 		HashSet<String> union = new HashSet<String>(shingles1);
 		interception.retainAll(shingles2);
 		union.addAll(shingles2);

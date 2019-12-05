@@ -14,24 +14,28 @@ public class Test {
 	static final String fileName3 = "src/project/Articles/articles3.csv";
 	
 	public static void doTest(String fileName, String sep) throws FileNotFoundException {
-		/*
+		
+		
 		Dataset dataset = new Dataset(50000);
-		dataset.setMaxValues(10000);
+		//dataset.setMaxValues(50000);
 		dataset.addValuesCSV(fileName);
 		System.out.println(dataset.toString());
-		*/
 		
-		//dataset.showSimilarTitles();
-		//dataset.getSameTitleSimilarContent(0.4);
 		
+		//dataset.showSimilarTitles(0.8);
+		dataset.showSameTitleSimilarContent(0.8);
+		
+		
+		/*
 		String[] list = {"porra so quero acabar este projeto", "ola como estas tudo bem", "ola tudo bem como estas"};
 		MinHash minHash = new MinHash(100);
 		minHash.add(list);
 		
-		int v1 = 0;
+		int v1 = 2;
 		int v2 = 1;
 		System.out.println("Teorico: " + minHash.jaccardCoeficient(list[v1], list[v2]));
 		System.out.println("Pratico: " + minHash.getSimilarity(v1, v2));
+		*/
 		
 		
 		//dataset.showSimilarTitles(0.8, 10);

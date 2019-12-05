@@ -48,30 +48,15 @@ public class Dataset {
 		showSimilarNews(threshHold, permutations, 10);
 	}
 	
-	public void showSameNews(double threshHold, int permutations) {
-		showSameNews(threshHold, permutations, 10);
+	public void showSameTitleSimilarContent(double threshHold) {
+		showSameTitleSimilarContent(threshHold, 100, 10);
 	}
 	
-	public void showSameNews(double threshHold, int permutations, int shingleLen) {
-		
-	}
-	
-	public void getSameTitleSimilarContent(double threshHold, int permutations) {
-		getSameTitleSimilarContent(threshHold, permutations, 10);
-	}
-	
-	public void getSameTitleSimilarContent(double threshHold) {
-		getSameTitleSimilarContent(threshHold, 100, 10);
-	}
-	
-	public void getSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
+	public void showSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
+		System.out.println("Receiving titles..");
 		LinkedList<String> list = getEqualTitles();
-		System.out.println(list.size());
-		MinHash minHash = new MinHash(permutations);
-		minHash.setThreshHold(threshHold);
-		minHash.showSimilars();
-		minHash.add(list);
-		List<LinkedList<Integer>> resp = minHash.getSimilars();
+		System.out.println("Getting similarities..");
+		List<LinkedList<Integer>> resp = getSameTitleSimilarContent(list, threshHold, permutations, shingleLen);
 		for(int i=0;i<resp.size();i++) {
 			LinkedList<Integer> llAux = resp.get(i);
 			for(int j=0;j<llAux.size();j++) {
@@ -80,7 +65,31 @@ public class Dataset {
 		}
 		if(resp.size() == 0) {
 			System.out.println("No match");
-		}	
+		}
+		
+	}
+	
+	public List<LinkedList<Integer>> getSameTitleSimilarContent(LinkedList<String> list, double threshHold, int permutations, int shingleLen) {
+		MinHash minHash = new MinHash(permutations);
+		minHash.setThreshHold(threshHold);
+		minHash.showSimilars();
+		minHash.add(list);
+		List<LinkedList<Integer>> resp = minHash.getSimilars();
+		return resp;
+	}
+	
+	public List<LinkedList<Integer>> getSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
+		LinkedList<String> list = getEqualTitles();
+		MinHash minHash = new MinHash(permutations);
+		minHash.setThreshHold(threshHold);
+		minHash.showSimilars();
+		minHash.add(list);
+		List<LinkedList<Integer>> resp = minHash.getSimilars();
+		return resp;
+	}
+	
+	public List<LinkedList<Integer>> getSameTitleSimilarContent(double threshHold) {
+		return getSameTitleSimilarContent(threshHold, 100, 10);
 	}
 	
 	public LinkedList<String> getEqualTitles(){
@@ -100,7 +109,6 @@ public class Dataset {
 			}
 			if(count > 1) {
 				list.add(aux.get(i).getContent());
-				System.out.println(aux.get(i).getTitle());
 			}
 		}
 		return list;
@@ -194,7 +202,7 @@ public class Dataset {
 		showSimilarTitles(threshHold, 100);
 	}
 	
-	public List<String> purifyTitles(List<String> list){
+	private List<String> purifyTitles(List<String> list){
 		List<String> newList = new LinkedList<String>();
 		for(String str: list) {
 			for(String entity: this.trustedEntitiesMark) {
@@ -205,7 +213,7 @@ public class Dataset {
 		return newList;
 	}
 	
-	public void registLog(List<LinkedList<Integer>> links, List<String> list, String fileName) throws IOException {
+	private void registLog(List<LinkedList<Integer>> links, List<String> list, String fileName) throws IOException {
 		if(links.size() == 0) {
 			System.out.println("No information to save on log file");
 			return;
