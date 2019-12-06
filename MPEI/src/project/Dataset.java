@@ -63,6 +63,7 @@ public class Dataset {
 	
 	public void showSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
 		List<Publication> publications = getPublicationsWithEqualTitles();
+		System.out.println(publications.size());
 		LinkedList<String> news = new LinkedList<String>();
 		for(Publication p: publications) {
 			news.add(p.getContent());

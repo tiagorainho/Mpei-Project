@@ -10,7 +10,7 @@ public class Main {
 	
 	public static void main(String[] args) throws IOException {
 		
-		Test.doTest(fileName1, ",");
+		Test.doTest();
 		
 		
 	}

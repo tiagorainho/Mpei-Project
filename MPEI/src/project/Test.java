@@ -15,31 +15,20 @@ public class Test {
 	static final String fileName2 = "src/project/Articles/articles2.csv";
 	static final String fileName3 = "src/project/Articles/articles3.csv";
 	
-	public static void doTest(String fileName, String sep) throws IOException {
+	public static void doTest() throws IOException {
 		
-		/*
-		Dataset dataset = new Dataset(100000);
-		dataset.setMaxValues(10000);
-		dataset.addValuesCSV(fileName);
+		
+		Dataset dataset = new Dataset(120000);
+		dataset.setMaxValues(120000);
+		dataset.addValuesCSV(fileName1);
 		dataset.addValuesCSV(fileName2);
 		dataset.addValuesCSV(fileName3);
 		System.out.println(dataset.toString());
 		
-		dataset.showSimilarTitles(0.6, 100);
-		*/
-		
-		//dataset.showSameTitleSimilarContent(0.6);
-		
-		testMinHash(500);
+		//dataset.showSimilarTitles(0.6, 100);
 		
 		
-		
-		
-		
-		
-		
-		
-		//showSameTitlePublications
+		dataset.showSameTitleSimilarContent(0.6);
 		
 		
 		
@@ -53,52 +42,23 @@ public class Test {
 		
 		
 		
+		//testAll();
 		
 		
-		
-		
-		
-		
-		
-		
-		
-		/*
-		String[] list = {"porra so quero acabar este projeto", "ola como estas tudo bem", "ola tudo bem como estas"};
-		MinHash minHash = new MinHash(100);
-		minHash.add(list);
-		
-		int v1 = 2;
-		int v2 = 1;
-		System.out.println("Teorico: " + minHash.jaccardCoeficient(list[v1], list[v2]));
-		System.out.println("Pratico: " + minHash.getSimilarity(v1, v2));
-		*/
-		
-		
-		//dataset.showSimilarTitles(0.8, 10);
-		//dataset.getSameNews(0.8, 100);
-		
-		//dataset.showSimilarNews(0.8, 100);
-		
-		
-		/*
-		int val = 10000;
-		String m = getRandomString(val-1,val);
-		String n = getRandomString(val-1, val);
-		String[] a= {m,n};
-		*/
-		//String[] a= {"faeoifhaeuofhaeoiwfaof a haeufhaeou uoahuf auh faeuohf aehfahoufiwajoda+ºdofaekjfgaeook", "jnaoefjap maoj fjaei jfoa p kaiido+awºlĸð nmg sjkg ae ae8fseufsefseifhesoi"};
-		/*MinHash b = new MinHash(100, 10);
-		b.add(a);
-		System.out.println(b.getSimilarity(0, 1));
-		*/
-		
-		
-		
-		
-		//testBloomFilter(dataset, 1000000);
 	}
 	
-	private static void testMinHash(int value) throws FileNotFoundException {
+	public static void testAll() throws FileNotFoundException {
+		Dataset dataset = new Dataset(100000);
+		dataset.setMaxValues(10000);
+		dataset.addValuesCSV(fileName1);
+		dataset.addValuesCSV(fileName2);
+		dataset.addValuesCSV(fileName3);
+		System.out.println(dataset.toString());
+		testBloomFilter(dataset, 1000000);
+		testMinHash(1000);
+	}
+	
+	public static void testMinHash(int value) throws FileNotFoundException {
 		System.out.println("TESTING MIN HASH...");
 		Dataset dataset = new Dataset(value);
 		dataset.setMaxValues(value);
@@ -142,20 +102,14 @@ public class Test {
 		return content;
 	}
 	
-	private static boolean testInserts(Dataset dataset) {
-		dataset.showPublicationsFast();
-		System.out.println(dataset.toString());
-		return true;
-	}
-	
-	private static void testBloomFilter(Dataset dataset, int value) {
+	public static void testBloomFilter(Dataset dataset, int value) {
 		String[] randomStrings = getRandomStrings(value);
 		testBloomFilterOptimized(dataset, randomStrings);
 		testBloomFilterIncremental(dataset, randomStrings);
 		testBloomFilterIncrementalMoreThanOne(dataset, randomStrings);
 	}
 	
-	private static void testBloomFilterIncrementalMoreThanOne(Dataset dataset, String[] randomValues) {
+	public static void testBloomFilterIncrementalMoreThanOne(Dataset dataset, String[] randomValues) {
 		System.out.println("BLOOM FILTER INCREMENTAL \"More than one\" TEST...");
 		ArrayList<Publication> d = dataset.getDataset();
 		int count = 0;
@@ -174,7 +128,7 @@ public class Test {
 		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (count*100)/randomValues.length + "%  (" + count + "/" + randomValues.length + ")");
 	}
 	
-	private static void testBloomFilterIncremental(Dataset dataset, String[] randomValues) {
+	public static void testBloomFilterIncremental(Dataset dataset, String[] randomValues) {
 		System.out.println("BLOOM FILTER INCREMENTAL TEST...");
 		ArrayList<Publication> d = dataset.getDataset();
 		int errors = 0;
@@ -194,7 +148,7 @@ public class Test {
 		System.out.println("Bloom Filter: percentage of false positives is: " + (double) (errors*100)/randomValues.length + "%  (" + errors + "/" + randomValues.length + ")");
 	}
 	
-	private static void testBloomFilterOptimized(Dataset dataset, String[] randomValues) {
+	public static void testBloomFilterOptimized(Dataset dataset, String[] randomValues) {
 		System.out.println("BLOOM FILTER OPTIMIZED TEST...");
 		ArrayList<Publication> d = dataset.getDataset();
 		int errors = 0;
@@ -219,7 +173,6 @@ public class Test {
 		String[] strings = new String[values];
 		for(int i=0;i<values;i++) {
 			strings[i] = getRandomString(5,20);
-			System.out.println(strings[i]);
 		}
 		return strings;
 	}
