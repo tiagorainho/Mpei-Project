@@ -1,5 +1,6 @@
 package project;
 
+import java.math.BigInteger;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -62,7 +63,7 @@ public class MinHash {
 		LinkedList<Integer> llAux;
 		List<LinkedList<Integer>> list = new LinkedList<LinkedList<Integer>>();
 		HashSet<Integer> used = new HashSet<Integer>();
-		int countPercent = 0;
+		int count = 0;
 		int iterations = (int) Math.ceil(((this.signatures.length*(this.signatures.length-1))/2)/10);
 		int iteration = 0;
 		for(int i=0;i<this.signatures.length-1;i++) {			
@@ -80,11 +81,14 @@ public class MinHash {
 					}
 				}
 				// ############ show progress ##################
-				if(iteration == iterations*countPercent) {
-					if(countPercent != 10) {
-						System.out.printf("%d%%.. ", countPercent*10);
+				if(iteration == iterations*count) {
+					if(count != 10) {
+						System.out.printf("%d%%.. ", count*10);
 					}
-					countPercent++;
+					else {
+						System.out.printf("%d%% ", count*10);
+					}
+					count++;
 				}
 				// #############################################
 				
@@ -100,43 +104,70 @@ public class MinHash {
 	}
 	
 	public List<LinkedList<Integer>> getSimilars(){
+		return getSimilars(true);
+	}
+	
+	public List<LinkedList<Integer>> getSimilars(boolean showProgress){
 		boolean found;
 		LinkedList<Integer> llAux;
 		List<LinkedList<Integer>> list = new LinkedList<LinkedList<Integer>>();
 		HashSet<Integer> used = new HashSet<Integer>();
-		int countPercent = 0;
-		int iterations = (int) Math.ceil((this.signatures.length*(this.signatures.length-1))/2);
-		double dist = iterations/10;
-		int iteration = 0;
-		for(int i=0;i<this.signatures.length-1;i++) {			
-			llAux = new LinkedList<Integer>();
-			found = false;
-			for(int j=i+1;j<this.signatures.length;j++) {
-				// ############ show progress ##################
-				if(iteration == (int) (dist*countPercent/10)) {
-					if(countPercent != 100) {
-						System.out.printf("%d%%.. ", countPercent);
+		if(showProgress) {
+			int count = 0;
+			BigInteger iterationsAux = new BigInteger("1").multiply(BigInteger.valueOf(this.signatures.length).multiply(BigInteger.valueOf(this.signatures.length-1))).divide(BigInteger.valueOf(2));
+			BigInteger partAux = BigInteger.ONE.multiply(iterationsAux).divide(BigInteger.valueOf(10));
+			long iteration = 0;
+			long iterations = iterationsAux.longValue();
+			long part = partAux.longValue();
+			for(int i=0;i<this.signatures.length-1;i++) {
+				llAux = new LinkedList<Integer>();
+				found = false;
+				for(int j=i+1;j<this.signatures.length;j++) {
+					// ############ show progress ##################
+					if(iteration == part*count) {
+						if(count != 10) {
+							System.out.printf("%d%%.. ", count*10);
+						}
+						else {
+							System.out.printf("%d%% ", count*10);
+						}
+						count++;
 					}
-					countPercent += 10;
-					System.out.println(iteration);
-				}
-				// #############################################
-				if(!used.contains(j)) {
-					if(areSimilar(i, j)) {
-						found = true;
-						llAux.add(j);
-						used.add(j);
+					iteration++;
+					// #############################################
+					if(!used.contains(j)) {
+						if(areSimilar(i, j)) {
+							found = true;
+							llAux.add(j);
+							used.add(j);
+						}
 					}
 				}
-				iteration++;
-			}
-			if(found) {
-				llAux.addFirst(i);
-				list.add(llAux);
+				if(found) {
+					llAux.addFirst(i);
+					list.add(llAux);
+				}
 			}
 		}
-		System.out.println("\nIterations: " + iterations);
-		System.out.println("Iteration: " + iteration);
+		else {
+			for(int i=0;i<this.signatures.length-1;i++) {			
+				llAux = new LinkedList<Integer>();
+				found = false;
+				for(int j=i+1;j<this.signatures.length;j++) {
+					if(!used.contains(j)) {
+						if(areSimilar(i, j)) {
+							found = true;
+							llAux.add(j);
+							used.add(j);
+						}
+					}
+				}
+				if(found) {
+					llAux.addFirst(i);
+					list.add(llAux);
+				}
+			}
+		}
 		System.out.println("Done!");
 		return list;
 	}
@@ -341,3 +372,38 @@ public class MinHash {
 		return b;
 	}
 }
+
+
+
+
+/*  for huge huge huge numbers (30-40% slower)
+for(int i=0;i<this.signatures.length-1;i++) {
+	llAux = new LinkedList<Integer>();
+	found = false;
+	for(int j=i+1;j<this.signatures.length;j++) {
+		// ############ show progress ##################
+		if(iteration.equals(dist.multiply(BigInteger.valueOf(countPercent)).divide(BigInteger.valueOf(10)))) {
+			if(countPercent != 100) {
+				System.out.printf("%d%%.. ", countPercent);
+			}
+			countPercent += 10;
+		}
+		iteration = iteration.add(BigInteger.ONE);
+		// #############################################
+		if(!used.contains(j)) {
+			if(areSimilar(i, j)) {
+				found = true;
+				llAux.add(j);
+				used.add(j);
+			}
+		}
+	}
+	if(found) {
+		llAux.addFirst(i);
+		list.add(llAux);
+	}
+}
+System.out.println("Iteracoes totais: " + iteration);
+*/
+
+

@@ -45,7 +45,7 @@ public class Dataset {
 	}
 	
 	public void showSimilarNews(double threshHold, int permutations) {
-		showSimilarNews(threshHold, permutations, 10);
+		showSimilarNews(threshHold, permutations, 10, true);
 	}
 	
 	public void showSameTitleSimilarContent(double threshHold) {
@@ -125,7 +125,7 @@ public class Dataset {
 		return list;
 	}
 	
-	public void showSimilarNews(double threshHold, int permutations, int shingleLen) {
+	public void showSimilarNews(double threshHold, int permutations, int shingleLen, boolean showProgress) {
 		System.out.println("Preparing shingles for Min Hashing...");
 		MinHash minHash = new MinHash(permutations, shingleLen);
 		minHash.setThreshHold(threshHold);
@@ -137,7 +137,7 @@ public class Dataset {
 		System.out.printf("Min Hash preparation finished in %.3f seconds\n",durationSeconds);
 		System.out.println("Calculating Min Hash...");
 		start = System.currentTimeMillis();
-		List<LinkedList<Integer>> list = minHash.getSimilars();
+		List<LinkedList<Integer>> list = minHash.getSimilars(showProgress);
 		int count = 0;
 		for(int i=0;i<list.size();i++) {
 			LinkedList<Integer> llAux = list.get(i);
@@ -163,15 +163,27 @@ public class Dataset {
 	}
 	
 	public void showSimilarTitles(double threshHold, int permutations) throws IOException {
+		showSimilarTitles(false, threshHold, permutations, true);
+	}
+	
+	public void showSimilarTitles(double threshHold, int permutations, boolean showProgress) throws IOException {
+		showSimilarTitles(false, threshHold, permutations, showProgress);
+	}
+	
+	public void showSimilarTitles(boolean acceptRepetition, double threshHold, int permutations) throws IOException {
+		showSimilarTitles(acceptRepetition, threshHold, permutations, true);
+	}
+	
+	public void showSimilarTitles(boolean acceptRepetition, double threshHold, int permutations, boolean showProgress) throws IOException {
 		System.out.println("Preparing for Min Hashing...");
 		MinHash minHash = new MinHash(permutations);
 		minHash.setThreshHold(threshHold);
-		List<String> titles = getTitles();
+		List<String> titles = getTitles(!acceptRepetition);
 		titles = purifyTitles(titles);
 		minHash.add(titles);
 		System.out.println("Calculating Min Hash...");
 		long start = System.currentTimeMillis();
-		List<LinkedList<Integer>> list = minHash.getSimilars();
+		List<LinkedList<Integer>> list = minHash.getSimilars(showProgress);
 		int count = 0;
 		for(int i=0;i<list.size();i++) {
 			LinkedList<Integer> llAux = list.get(i);
@@ -400,20 +412,33 @@ public class Dataset {
 		return getPublicationsContent(this.dataset.size());
 	}
  	
-	public List<String> getTitles(int value) {
-		Set<String> list = new HashSet<String>();
-		String title;
-		for(int i=0;i<value;i++) {
-			title = this.dataset.get(i).getTitle();
-			//if(title.length() != 0) {
-				list.add(title);
-			//}
+	public List<String> getTitles(int value, boolean getUniques) {
+		List<String> list = new LinkedList<String>();
+		if(getUniques) {
+			Set<String> listAux = new HashSet<String>();
+			String title;
+			for(int i=0;i<value;i++) {
+				title = this.dataset.get(i).getTitle();
+				//if(title.length() != 0) {
+				listAux.add(title);
+				//}
+			}
+			
+			for(String str: listAux) {
+				list.add(str);
+			}
+			return list;
 		}
-		List<String> newlist = new LinkedList<String>();
-		for(String str: list) {
-			newlist.add(str);
+		else {
+			String title;
+			for(int i=0;i<value;i++) {
+				title = this.dataset.get(i).getTitle();
+				//if(title.length() != 0) {
+					list.add(title);
+				//}
+			}
 		}
-		return newlist;
+		return list;
 	}
 	
 	public BloomFilterIncremental getBloomFilterIncremental() {
@@ -421,8 +446,12 @@ public class Dataset {
 		return this.titlesBloomFilterIncremental;
 	}
 	
+	public List<String> getTitles(boolean getUniques) {
+		return getTitles(this.dataset.size(), getUniques);
+	}
+	
 	public List<String> getTitles() {
-		return getTitles(this.dataset.size());
+		return getTitles(this.dataset.size(), true);
 	}
 	
 	public void showPublicationsFast() {
@@ -497,7 +526,7 @@ public class Dataset {
 	}
 	
 	public void showSimilarNews(double threshHold) {
-		showSimilarNews(threshHold, 100, 10);
+		showSimilarNews(threshHold, 100, 10, true);
 	}
 	
 	/// ########################################################33
