@@ -25,6 +25,7 @@ public class Dataset {
 	private int errors;
 	private int excluded;
 	private BloomFilterOptimized titlesBloomFilter;
+	private BloomFilterOptimized authorsBloomFilter;
 	private BloomFilterIncremental titlesBloomFilterIncremental;
 	private boolean onlyTrustTrustedEntities;
 	private static final String[] trustedEntities = {"New York Times", "Breitbart", "CNN", "Business Insider", "Atlantic", "Fox News", "Talking Points Memo", "Buzzfeed News", "National Review", "Guardian", "New York Post", "NPR", "Reuters", "Vox", "Washington Post"};   
@@ -37,6 +38,7 @@ public class Dataset {
 		this.excluded = 0;
 		this.errors = 0;
 		this.titlesBloomFilter = new BloomFilterOptimized(numValuesAprox, 4);
+		this.authorsBloomFilter = new BloomFilterOptimized(numValuesAprox, 4);
 		this.titlesBloomFilterIncremental = new BloomFilterIncremental(numValuesAprox, 4);
 	}
 	
@@ -50,6 +52,13 @@ public class Dataset {
 	
 	public void showSameTitleSimilarContent(double threshHold) {
 		showSameTitleSimilarContent(threshHold, 100, 10);
+	}
+	
+	public void showSameTitlePublications() {
+		List<Publication> publications = getPublicationsWithEqualTitles();
+		for(Publication p: publications) {
+			System.out.println(p.getContent().toString() + "\n");
+		}
 	}
 	
 	public void showSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
@@ -286,9 +295,10 @@ public class Dataset {
 	}
 	
 	public void addToDataset(String[] parts) {
-		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), parts[9]));
-		titlesBloomFilter.add(parts[2].trim());
-		titlesBloomFilterIncremental.add(parts[2].trim());
+		dataset.add(new Publication(this.dataset.size(), parts[4], parts[2], parts[3], parts[9]));
+		titlesBloomFilter.add(parts[2]);
+		authorsBloomFilter.add(parts[4]);
+		titlesBloomFilterIncremental.add(parts[2]);
 	}
 	
 	public void addValuesCSV(File fileName, String sep) {
@@ -322,9 +332,16 @@ public class Dataset {
 	}
 	
 	private void addToDataset(String[] parts, String sep) {
-		int id = Integer.parseInt(parts[0].trim());
-		dataset.add(new Publication(this.dataset.size(), parts[4].trim(), parts[2].trim(), parts[3].trim(), getContent(parts,9, sep)));
-		titlesBloomFilter.add(parts[2].trim());
+		int id = Integer.parseInt(parts[0]);
+		dataset.add(new Publication(this.dataset.size(), parts[4], parts[2], parts[3], getContent(parts,9, sep)));
+		titlesBloomFilter.add(parts[2]);
+		authorsBloomFilter.add(parts[1]);
+	}
+	
+	public void addToDataset(Publication p) {
+		dataset.add(p);
+		authorsBloomFilter.add(p.getAuthor());
+		titlesBloomFilter.add(p.getTitle());
 	}
 	
 	public String[] getPublicators() {
@@ -441,6 +458,41 @@ public class Dataset {
 		return list;
 	}
 	
+	public boolean authorExits(String authorName) {
+		if(!this.authorsBloomFilter.contains(authorName)) {
+			return false;
+		}
+		// make sure its the real one
+		String authorAux;
+		for(int i=0;i<this.dataset.size();i++) {
+			authorAux = this.dataset.get(i).getAuthor();
+			if(authorAux.equals(authorName)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public List<String> getAuthors() {
+		return getAuthors(this.dataset.size());
+	}
+	
+	public List<String> getAuthors(int value) {
+		Set<String> listAux = new HashSet<String>();
+		String author;
+		for(int i=0;i<value;i++) {
+			author = this.dataset.get(i).getAuthor();
+			if(author.length() != 0) {
+				listAux.add(author);
+			}
+		}
+		LinkedList<String> list = new LinkedList<String>();
+		for(String str: listAux) {
+			list.add(str);
+		}
+		return list;
+	}
+	
 	public BloomFilterIncremental getBloomFilterIncremental() {
 		// for testing
 		return this.titlesBloomFilterIncremental;
@@ -452,6 +504,10 @@ public class Dataset {
 	
 	public List<String> getTitles() {
 		return getTitles(this.dataset.size(), true);
+	}
+	
+	public List<String> getTitles(int size) {
+		return getTitles(size, true);
 	}
 	
 	public void showPublicationsFast() {
@@ -517,12 +573,6 @@ public class Dataset {
 	
 	public int size() {
 		return dataset.size();
-	}
-	
-	public void addToDataset(Publication p) {
-		dataset.add(p);
-		titlesBloomFilter.add(p.getTitle());
-		this.maxValues++;
 	}
 	
 	public void showSimilarNews(double threshHold) {

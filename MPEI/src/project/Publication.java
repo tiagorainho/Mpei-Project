@@ -24,6 +24,10 @@ public class Publication {
 		return this.publicator;
 	}
 	
+	public String getAuthor() {
+		return this.author;
+	}
+	
 	public String getTitle() {
 		return this.title;
 	}
