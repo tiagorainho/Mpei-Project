@@ -76,14 +76,11 @@ public class Dataset {
 		for(Publication p: publications) {
 			news.add(p.getContent());
 			titles.add(p.getTitle());
-			System.out.println(p.getTitle());
 		}
 		
 		MinHash minHash = new MinHash(permutations);
 		minHash.setThreshHold(threshHold);
 		minHash.add(news);
-		//List<LinkedList<Integer>> resp = minHash.getSimilars();
-		
 		List<LinkedList<Integer>> resp = minHash.getSimilaresWithConstantField(news, titles);
 		registLog(resp, news, "news.txt");
 		registLog(resp, titles, "titles.txt");

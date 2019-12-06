@@ -106,17 +106,19 @@ public class MinHash {
 		HashSet<Integer> used = new HashSet<Integer>();
 		int countPercent = 0;
 		int iterations = (int) Math.ceil((this.signatures.length*(this.signatures.length-1))/2);
+		double dist = iterations/10;
 		int iteration = 0;
 		for(int i=0;i<this.signatures.length-1;i++) {			
 			llAux = new LinkedList<Integer>();
 			found = false;
 			for(int j=i+1;j<this.signatures.length;j++) {
 				// ############ show progress ##################
-				if(iteration == iterations*countPercent/100) {
+				if(iteration == (int) (dist*countPercent/10)) {
 					if(countPercent != 100) {
 						System.out.printf("%d%%.. ", countPercent);
 					}
 					countPercent += 10;
+					System.out.println(iteration);
 				}
 				// #############################################
 				if(!used.contains(j)) {

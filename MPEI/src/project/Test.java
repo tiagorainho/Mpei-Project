@@ -18,15 +18,48 @@ public class Test {
 		
 		
 		Dataset dataset = new Dataset(50000);
-		dataset.setMaxValues(10451);
+		dataset.setMaxValues(10000);
 		dataset.addValuesCSV(fileName);
-		dataset.addValuesCSV(fileName2);
-		dataset.addValuesCSV(fileName3);
+	//	dataset.addValuesCSV(fileName2);
+	//	dataset.addValuesCSV(fileName3);
 		System.out.println(dataset.toString());
 		
 		
 		dataset.showSimilarTitles(0.8, 100);
-		//dataset.showSameTitleSimilarContent(0.1);
+		
+		
+		//dataset.showSameTitleSimilarContent(0.2);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 		
 		
 		/*
