@@ -11,38 +11,23 @@ import java.util.Scanner;
 
 public class Test {
 	static final Scanner input = new Scanner(System.in);
-	static final String fileName1 = "src/project/Articles/articles1.csv";
-	static final String fileName2 = "src/project/Articles/articles2.csv";
-	static final String fileName3 = "src/project/Articles/articles3.csv";
+	static final String fileName1 = "Articles/articles1.csv";
+	static final String fileName2 = "Articles/articles2.csv";
+	static final String fileName3 = "Articles/articles3.csv";
 	
 	public static void doTest() throws IOException {
 		
 		
 		Dataset dataset = new Dataset(120000);
-		dataset.setMaxValues(120000);
+		dataset.setMaxValues(50000);
 		dataset.addValuesCSV(fileName1);
 		dataset.addValuesCSV(fileName2);
 		dataset.addValuesCSV(fileName3);
 		System.out.println(dataset.toString());
 		
-		//dataset.showSimilarTitles(0.6, 100);
-		
-		
 		dataset.showSameTitleSimilarContent(0.6);
 		
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		//testAll();
 		
 		
 	}
@@ -54,8 +39,8 @@ public class Test {
 		dataset.addValuesCSV(fileName2);
 		dataset.addValuesCSV(fileName3);
 		System.out.println(dataset.toString());
-		testBloomFilter(dataset, 1000000);
-		testMinHash(1000);
+		testBloomFilter(dataset, 10000000);
+		testMinHash(1500);
 	}
 	
 	public static void testMinHash(int value) throws FileNotFoundException {

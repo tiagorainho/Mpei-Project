@@ -16,6 +16,17 @@ public class Publication {
 		this.id = id;
 	}
 	
+	public Publication(String author, String title, String publicator, String content) {
+		this.author = author;
+		this.title = title;
+		this.publicator = publicator;
+		this.content = content;
+	}
+	
+	public void setId(int id) {
+		this.id = id;
+	}
+	
 	public String getContent() {
 		return this.content;
 	}

@@ -29,7 +29,7 @@ public class Dataset {
 	private BloomFilterIncremental titlesBloomFilterIncremental;
 	private boolean onlyTrustTrustedEntities;
 	private static final String[] trustedEntities = {"New York Times", "Breitbart", "CNN", "Business Insider", "Atlantic", "Fox News", "Talking Points Memo", "Buzzfeed News", "National Review", "Guardian", "New York Post", "NPR", "Reuters", "Vox", "Washington Post"};   
-	private static final String[] trustedEntitiesMark = {" - The New York Times", ",Atlantic", ",Guardian", " - Breitbart"};
+	private static final String[] trustedEntitiesMark = {" - The New York Times", ",Atlantic", ",Guardian", " - Breitbart"}; // etc
 	
 	public Dataset(int numValuesAprox, boolean onlyTrustTrustedEntities) {
 		this.onlyTrustTrustedEntities = onlyTrustTrustedEntities;
@@ -63,7 +63,6 @@ public class Dataset {
 	
 	public void showSameTitleSimilarContent(double threshHold, int permutations, int shingleLen) {
 		List<Publication> publications = getPublicationsWithEqualTitles();
-		System.out.println(publications.size());
 		LinkedList<String> news = new LinkedList<String>();
 		for(Publication p: publications) {
 			news.add(p.getContent());
@@ -106,9 +105,12 @@ public class Dataset {
 	}
 	
 	public void showPublicationsWithEqualTitles() {
-		List<Publication> list = getPublicationsWithEqualTitles();
+		List<Publication> list = getPublicationsWithEqualTitles();		
 		for(Publication p: list) {
 			System.out.println(p.toString());
+		}
+		if(list.size() == 0) {
+			System.out.println("No match found");
 		}
 	}
 	
@@ -233,7 +235,7 @@ public class Dataset {
 		if(System.getProperty("os.name").contains("Windows")) {
 			sep = "\\";
 		}
-		fileName = "src" + sep + "logs" + sep + fileName;
+		fileName = "logs" + sep + fileName;
 		
 		if(links.size() == 0) {
 			System.out.println("No information to save on log file");
@@ -333,13 +335,13 @@ public class Dataset {
 	}
 	
 	private void addToDataset(String[] parts, String sep) {
-		int id = Integer.parseInt(parts[0]);
 		dataset.add(new Publication(this.dataset.size(), parts[4], parts[2], parts[3], getContent(parts,9, sep)));
 		titlesBloomFilter.add(parts[2]);
 		authorsBloomFilter.add(parts[1]);
 	}
 	
 	public void addToDataset(Publication p) {
+		p.setId(this.dataset.size());
 		dataset.add(p);
 		authorsBloomFilter.add(p.getAuthor());
 		titlesBloomFilter.add(p.getTitle());

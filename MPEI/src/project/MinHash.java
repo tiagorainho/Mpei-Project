@@ -220,11 +220,10 @@ public class MinHash {
 	}
 	
 	public void add(String[] str) {
-		
 		if(str.length == 0) {
 			System.out.println("Action not valid due to lack of values in the database");
 			throw new ArrayIndexOutOfBoundsException();
-		}		
+		}
 		int initialLength = this.signatures.length;
 		if(initialLength <= 1 && this.signatures[0][0] == 0) {
 			initialLength = 0;
